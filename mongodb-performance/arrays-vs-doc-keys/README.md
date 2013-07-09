@@ -3,9 +3,11 @@ MongoDB Arrays vs Doc Keys Performance Test
 
 Note: uses localhost mongodb on default port 27017, and the test db. Drops myArray myDoc collections and populates with simulated data.
 
-usage: node populate-array-vs-docs.js
+usage:
 
-Then run:
+npm install
+
+node populate-array-vs-docs.js
 
 node test-array.js
 node test-doc.js
