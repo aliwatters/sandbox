@@ -27,7 +27,7 @@ var MongoClient = require('mongodb').MongoClient
 		if (i % 1000 === 0) console.log('Populated:',i);
 	}
 
-	db.close();
+	db.ensureIndex('myArray',{courses:1}, function() { db.close(); });
   });
 
 
@@ -61,7 +61,7 @@ var MongoClient = require('mongodb').MongoClient
 		if (i % 1000 === 0) console.log('Populated:',i);
 	}
 
-	db.close();
+	db.ensureIndex('myDoc',{courses:1}, function() { db.close(); });
   });
 
 // End of show

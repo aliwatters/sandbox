@@ -47,7 +47,7 @@ MongoClient.connect('mongodb://127.0.0.1:27017/test', function(err, db) {
 						results[thingId] = [];
 						cursor.each(function(err,item) {
 							if (err || !item) callback();
-							else results[thingId] = item;
+							else results[thingId].push(item);
 							// console.log(item);
 						});
 					});
