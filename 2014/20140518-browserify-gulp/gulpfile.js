@@ -1,7 +1,7 @@
 'use strict';
 
 var path = require('path');  
-//var fs = require('fs');  
+var fs = require('fs');  
 var gulp = require('gulp');  
 var gutil = require('gulp-util');  
 var buster = require('gulp-buster');
@@ -15,7 +15,7 @@ var filesize = require('gulp-filesize');
 var less = require('gulp-less');  
 var changed = require('gulp-changed');  
 var watch = require('gulp-watch');
-
+var symlink = require('gulp-symlink');
 
 gulp.task('clean', function () {  
   return gulp.src('build', {read: false})
@@ -84,15 +84,12 @@ gulp.task('browserify', function() {
 });
 
 
-gulp.task('default', function() {
-	console.log('default task - no work to do');
-});
-
 
 
 gulp.task('hash', function(file) {
 	buster.config({algo : 'md5', length: 6});
-	gulp.src(file);
+	return gulp.src(file).buster();
+
 });
 
 
@@ -101,3 +98,31 @@ gulp.task('lint', function() {
     .pipe(jshint())
     .pipe(jshint.reporter('jshint-stylish'));
 });
+
+
+gulp.task('hash', function() {
+	buster.config({algo : 'md5', length: 6});
+
+  return gulp.src([
+    'build/**/*.min.js',
+    'css/*.css'
+  ])
+  .pipe(buster('mapping.json'))      
+  .pipe(gulp.dest('build/js'));
+
+});
+
+
+gulp.task('linkup', function() {
+
+  var map = JSON.parse(fs.readFileSync('build/js/mapping.json'));
+
+  return gulp.src(['build/js/**/*.js'], {read:false})
+    .pipe(gutil.log());
+//    .pipe(symlink('' + ));
+});
+
+
+
+
+gulp.task('default', ['lint', 'clean', 'browserify', 'hash', 'linkup']);

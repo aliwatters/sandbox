@@ -19,7 +19,9 @@
     "reactify": "^0.13.1",
     "underscore": "^1.6.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp-symlink": "^1.0.3"
+  },
   "scripts": {
     "test": "gulp test"
   },
