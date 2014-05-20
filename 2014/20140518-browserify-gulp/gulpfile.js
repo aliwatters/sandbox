@@ -1,20 +1,27 @@
+'use strict';
+
 var path = require('path');  
+//var fs = require('fs');  
 var gulp = require('gulp');  
 var gutil = require('gulp-util');  
+var buster = require('gulp-buster');
 var clean = require('gulp-clean');  
-var concat = require('gulp-concat');  
+var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');  
-var rename = require('gulp-rename');  
+var rename = require('gulp-rename'); 
+var jshint = require('gulp-jshint'); 
 var browserify = require('gulp-browserify');  
 var filesize = require('gulp-filesize');  
 var less = require('gulp-less');  
 var changed = require('gulp-changed');  
 var watch = require('gulp-watch');
 
+
 gulp.task('clean', function () {  
   return gulp.src('build', {read: false})
     .pipe(clean());
 });
+
 
 gulp.task('vendor', function() {  
   return gulp.src('vendor/*.js')
@@ -25,8 +32,9 @@ gulp.task('vendor', function() {
     .pipe(rename('vendor.min.js'))
     .pipe(gulp.dest('build'))
     .pipe(filesize())
-    .on('error', gutil.log)
+    .on('error', gutil.log);
 });
+
 
 gulp.task('css', function () {  
   return gulp.src('less/**/*.less')
@@ -37,6 +45,7 @@ gulp.task('css', function () {
     .pipe(gulp.dest('build/css'))
     .on('error', gutil.log);
 });
+
 
 gulp.task('css:watch', function () {  
   watch({
@@ -53,6 +62,7 @@ gulp.task('css:watch', function () {
   });
 });
 
+
 gulp.task('browserify', function() {
   var production = gutil.env.type === 'production';
 
@@ -65,14 +75,29 @@ gulp.task('browserify', function() {
     }))
 
     .pipe(rename('bundle.js'))
-    .pipe(gulp.dest('build/'))
+    .pipe(gulp.dest('build/js'))
     .pipe(filesize())
 	.pipe(uglify())
     .pipe(rename('bundle.min.js'))
-    .pipe(gulp.dest('dist/'))
-    .pipe(filesize())
+    .pipe(gulp.dest('build/js'))
+    .pipe(filesize());
 });
+
 
 gulp.task('default', function() {
 	console.log('default task - no work to do');
+});
+
+
+
+gulp.task('hash', function(file) {
+	buster.config({algo : 'md5', length: 6});
+	gulp.src(file);
+});
+
+
+gulp.task('lint', function() {
+  return gulp.src('./*.js')
+    .pipe(jshint())
+    .pipe(jshint.reporter('jshint-stylish'));
 });
