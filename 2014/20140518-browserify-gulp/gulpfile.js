@@ -1,29 +1,31 @@
 'use strict';
 
-var path = require('path');  
-var fs = require('fs');  
-var gulp = require('gulp');  
-var gutil = require('gulp-util');  
+var path = require('path');
+var fs = require('fs');
+var glob = require('glob');
+var gulp = require('gulp');
+var gutil = require('gulp-util');
 var buster = require('gulp-buster');
-var clean = require('gulp-clean');  
+var clean = require('gulp-clean');
 var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');  
-var rename = require('gulp-rename'); 
-var jshint = require('gulp-jshint'); 
-var browserify = require('gulp-browserify');  
-var filesize = require('gulp-filesize');  
-var less = require('gulp-less');  
-var changed = require('gulp-changed');  
+var uglify = require('gulp-uglify');
+var rename = require('gulp-rename');
+var jshint = require('gulp-jshint');
+var browserify = require('gulp-browserify');
+var filesize = require('gulp-filesize');
+var less = require('gulp-less');
+var changed = require('gulp-changed');
 var watch = require('gulp-watch');
 var symlink = require('gulp-symlink');
+var streamqueue = require('streamqueue');
 
-gulp.task('clean', function () {  
+gulp.task('clean', function () {
   return gulp.src('build', {read: false})
     .pipe(clean());
 });
 
 
-gulp.task('vendor', function() {  
+gulp.task('vendor', function() {
   return gulp.src('vendor/*.js')
     .pipe(concat('vendor.js'))
     .pipe(gulp.dest('build'))
@@ -36,7 +38,7 @@ gulp.task('vendor', function() {
 });
 
 
-gulp.task('css', function () {  
+gulp.task('css', function () {
   return gulp.src('less/**/*.less')
     .pipe(changed('build/css'))
     .pipe(less({
@@ -47,7 +49,7 @@ gulp.task('css', function () {
 });
 
 
-gulp.task('css:watch', function () {  
+gulp.task('css:watch', function () {
   watch({
     glob: 'less/**/*.less',
     emit: 'one',
@@ -77,7 +79,7 @@ gulp.task('browserify', function() {
     .pipe(rename('bundle.js'))
     .pipe(gulp.dest('build/js'))
     .pipe(filesize())
-	.pipe(uglify())
+	  .pipe(uglify())
     .pipe(rename('bundle.min.js'))
     .pipe(gulp.dest('build/js'))
     .pipe(filesize());
@@ -107,7 +109,7 @@ gulp.task('hash', function() {
     'build/**/*.min.js',
     'css/*.css'
   ])
-  .pipe(buster('mapping.json'))      
+  .pipe(buster('mapping.json'))
   .pipe(gulp.dest('build/js'));
 
 });
@@ -115,14 +117,24 @@ gulp.task('hash', function() {
 
 gulp.task('linkup', function() {
 
-  var map = JSON.parse(fs.readFileSync('build/js/mapping.json'));
+  var map = require('./build/js/mapping.json');
+  var stream = streamqueue({ objectMode: true });
 
-  return gulp.src(['build/js/**/*.js'], {read:false})
-    .pipe(gutil.log());
-//    .pipe(symlink('' + ));
+  var files = glob.sync('build/js/**/*.min.js');
+
+  return files.forEach(function (file) {
+    var hash = map[file] || '0';
+    var name = file.replace(/\.min\.js$/, '-' + hash + '.min.js');
+    stream.queue(
+      gulp.src(file, {read:false})
+        .pipe(symlink(name))
+    )
+  });
+
 });
 
 
 
 
+// doesn't run in series ... use gulp lint; gulp clean; gulp browserify; gulp hash; gulp linkup;
 gulp.task('default', ['lint', 'clean', 'browserify', 'hash', 'linkup']);
