@@ -20,7 +20,8 @@
     "gulp-watch": "^0.6.4",
     "reactify": "^0.13.1",
     "underscore": "^1.6.0",
-    "streamqueue": "^0.0.7"
+    "streamqueue": "^0.0.7",
+    "glob" : "^4.0.0"
   },
   "devDependencies": {
     "gulp-symlink": "^1.0.3",
