@@ -6,5 +6,5 @@ $.fn.extend({
   }
 });
 
-console.log('and the result hello is:', $.fn.hello); // how to get for use in main.
+console.log('and the result hello is:', $.fn.hello);
 $.fn.hello('the module');
