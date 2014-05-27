@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>Gulp and jQuery Extensions</title>
+<style>
+    body {
+        margin:40px;
+        padding: 20px;
+        border:1px solid #ddd;
+        color:#666;
+        background:#f5f5f5;
+        font-family:sans-serif;
+    }
+</style>
+</head>
+<body>
+    <h1>Play Nice</h1>
+    To build - "$ browserify app.js > dist/bundle.js"
+    <script type='text/javascript' src='dist/bundle.js'></script>
+    <script>
+        alert('inline scripting');
+        $.fn.hello('inline scripting');
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "browserify-jquery-nice",
+  "version": "0.0.1",
+  "description": "Browserify and jQuery - play nice!",
+  "main": "app.js",
+  "dependencies": {
+    "gulp": "^3.6.2",
+    "gulp-browserify": "^0.5.0",
+    "jquery": "^2.1.1",
+    "underscore": "^1.6.0"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "author": "Ali Watters",
+  "license": "MIT"
+}
