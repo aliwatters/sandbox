@@ -1,0 +1,22 @@
+{
+  "name": "20140619-clientside-passhash",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^4.1.11",
+    "glob": "^4.0.2",
+    "gulp-clean": "^0.3.0",
+    "gulp-concat": "^2.2.0",
+    "gulp-rename": "^1.2.0",
+    "gulp-util": "^2.2.17",
+    "jshashes": "^1.0.5",
+    "mold-source-map": "^0.3.0",
+    "vinyl-source-stream": "^0.1.1"
+  }
+}

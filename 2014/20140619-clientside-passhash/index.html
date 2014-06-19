@@ -1,0 +1,65 @@
+<html>
+    <head>
+        <title>POC: Client Side Password Hash Generator</title>
+        <link rel='stylesheet' href='//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='col-sm-12'>
+                <h1>Proof of Concept Password Hash Generator</h1>
+                <p>Ali Watters: 2014-06-19</p>
+                <p>Generate a hash with stretching, based on a site domain, email, pin and a passphrase. The idea is that you can copy and paste the password into a site - and if that site is compromised the password is meaningless, unique per site, and impossible to reverse without the pin and passphrase - it's up to the user to determine if to use a unique pin and passphrase per site.<br><br>No passwords emails domains etc are ever stored or transmitted anywhere. Probably I'll be the only one ever to trust it - but still that's useful to me!</p>
+
+                <p>Caveats with current version
+                <ol>
+                    <li>uses CDN for js libraries - should be inlined! trust no one.
+                    <li>once working use a password field for the output.
+                    <li>currently just an academic exercise.
+                    <li>how can two factor auth work with this - should be enabled where available.
+                    <li>use the browser to store this passcode
+                    <li>add in length and character settings to match with website policies...
+                </ol>
+                </p>
+
+            </div>
+            <div class='col-sm-12 well'>
+                <form action='file://dev/null' method='POST'>
+                    <div class="form-group">
+                        <label for="pw-email">Email address</label>
+                        <input type="email" class="form-control" id="pw-email" placeholder="username@example.org">
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-pin">Your PIN Number</label>
+                        <input type="password" class="form-control" id="pw-pin" placeholder="Pin Number - or stretching...">
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-domain">Domain</label>
+                        <input type="text" class="form-control" id="pw-domain" placeholder="www.example.org">
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-passphrase">Passphrase</label>
+                        <input type="text" class="form-control" id="pw-passphrase" placeholder="Some lovely long sentence that is unique to you and the site (if possible)">
+                    </div>
+                    <div class="form-group">
+
+                        <input type='submit' class='form-control btn btn-primary' value='Generate'>
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-output">Output Passcode</label>
+                        <input type='text' id='pw-output' class='form-control'>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- external scripts -->
+        <script>
+            console.time('started');
+        </script>
+        <script src='//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js'></script>
+        <script src='//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js'></script>
+        <script src='build/js/bundle.js'></script>
+        <script>
+            console.time('loaded');
+        </script>
+    </body>
+</html>
