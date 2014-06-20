@@ -18,7 +18,7 @@
                     <li>how can two factor auth work with this - should be enabled where available.
                     <li>use the browser to store this passcode
                     <li>add in length and character settings to match with website policies...
-                    <li>todo - progress bar
+                    <li>todo - progress bar -- not working as expected
                 </ol>
                 </p>
 
@@ -43,7 +43,7 @@
                     </div>
                     <div class="form-group">
 
-                        <input type='submit' class='form-control btn btn-primary' id='pw-generate' value='Generate'>
+                        <button class='form-control btn btn-primary' id='pw-generate'>Generate</button>
                     </div>
                     <div class="progress">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id='pw-progress' style="width:0">
@@ -66,13 +66,26 @@
         <script>
 
             var Hashes = window._app.Hashes; // from bundle.
-            var LZstring = window._app.LZstring;
+
+            var passphrase = window.localStorage['passphrase'];
+            console.log(passphrase);
+            if (typeof passphrase !== 'undefined') {
+                $('#pw-passphrase').val(passphrase);
+            }
 
             var processing = false;
-            $("#pw-generate").on('click', function() {
+            $("#pw-generate").on('click', function(e) {
+                e.preventDefault();
                 if (processing) return;
-                console.time('generating');
-                $('body').css('cursor','progress');
+
+                if ($('#pw-passphrase').val() !== passphrase) {
+                    console.log('store passphrase', $('#pw-passphrase').val());
+                    window.localStorage['passphrase'] = $('#pw-passphrase').val();
+                }
+
+                $(this).prop('disabled', 'disabled').addClass('disabled');
+                console.log(this);
+                $('body').css('cursor','wait');
                 processing = true;
                 var stretch = parseInt($("#pw-pin").val(), 10);
                 if (!stretch) stretch = 1;
@@ -89,12 +102,18 @@
 
                 var x = 0, y = 0;
 
+                console.time('generating');
                 for (i = 0; i < stretch - 1; i++) {
-                    x = (Math.floor((i / stretch) * 100) + 1);
-                    if (x !== y) $("#pw-progress").css('width', x + '%');
+                    x = Math.floor((i / stretch) * 100) + 1;
+                    if (x !== y) {
+                        $("#pw-progress").css('width', x + '%');
+                        console.log('change detected', x + '%');
+                    }
                     y = x;
                     code = SHA512.hex(code);
                 }
+                console.timeEnd('generating');
+                console.log('complete');
 
                 // and now code for ascii - with numbers, punc, a-z
                 code = SHA512.any(code, window._app.alphabet); // last time encode with any.
@@ -103,7 +122,7 @@
                 processing = false;
                 $('body').css('cursor', 'default');
                 $('#pw-progress').delay(1000).css('width', '0%');
-                console.timeEnd('generating');
+                $(this).prop('disabled', false).removeClass('disabled');
             });
 
             console.timeEnd('loaded');
