@@ -47,8 +47,12 @@
                     </div>
                     <div class="progress">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id='pw-progress' style="width:0">
+                        </div>
                     </div>
-</div>
+                    <div class="form-group">
+                        <label for="pw-output-safe">Safe Passcode</label>
+                        <input type='text' id='pw-output-safe' class='form-control'>
+                    </div>
                     <div class="form-group">
                         <label for="pw-output">Output Passcode</label>
                         <input type='text' id='pw-output' class='form-control'>
@@ -116,8 +120,10 @@
                 console.log('complete');
 
                 // and now code for ascii - with numbers, punc, a-z
+                var safe = SHA512.any(code, window._app.safeAlphabet); 
                 code = SHA512.any(code, window._app.alphabet); // last time encode with any.
                 console.log(code);
+                $("#pw-output-safe").val(safe.substr(0, 16));
                 $("#pw-output").val(code.substr(0, 16));
                 processing = false;
                 $('body').css('cursor', 'default');
