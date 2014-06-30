@@ -18,7 +18,7 @@
                     <li>how can two factor auth work with this - should be enabled where available.
                     <li>use the browser to store this passcode
                     <li>add in length and character settings to match with website policies...
-                    <li>todo - progress bar
+                    <li>todo - progress bar -- not working as expected
                 </ol>
                 </p>
 
@@ -39,19 +39,33 @@
                     </div>
                     <div class="form-group">
                         <label for="pw-passphrase">Passphrase</label>
-                        <input type="text" class="form-control" id="pw-passphrase" placeholder="Some lovely long sentence that is unique to you and the site (if possible)">
+                        <div class="input-group">
+                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-passphrase-show'></span></span>
+                          <input type="password" class="form-control" id="pw-passphrase" placeholder="Some lovely long sentence that is unique to you and the site (if possible)">
+                          <span class="input-group-addon"><span class="glyphicon glyphicon-floppy-save" title='save on this browser' id='pw-output-safe-show'></span></span>
+                        </div>
                     </div>
                     <div class="form-group">
 
-                        <input type='submit' class='form-control btn btn-primary' id='pw-generate' value='Generate'>
+                        <button class='form-control btn btn-primary' id='pw-generate'>Generate</button>
                     </div>
                     <div class="progress">
                         <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id='pw-progress' style="width:0">
+                        </div>
                     </div>
-</div>
                     <div class="form-group">
-                        <label for="pw-output">Output Passcode</label>
-                        <input type='text' id='pw-output' class='form-control'>
+                        <label for="pw-output-safe">Simple Passcode</label>
+                        <div class="input-group">
+                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-safe-show'></span></span>
+                          <input type='password' id='pw-output-safe' class='form-control'>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pw-output">Full Passcode</label>
+                        <div class="input-group">
+                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-show'></span></span>
+                          <input type='password' id='pw-output' class='form-control'>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -67,16 +81,26 @@
 
             var Hashes = window._app.Hashes; // from bundle.
 
+            var passphrase = window.localStorage['passphrase'];
+            console.log(passphrase);
+            if (typeof passphrase !== 'undefined') {
+                $('#pw-passphrase').val(passphrase);
+            }
+
             var processing = false;
-            $("#pw-generate").on('click', function() {
-                console.log('processing:', processing);
-                if (processing) {
-                    console.log('generation in progress');
-                    return;
+            $("#pw-generate").on('click', function(e) {
+                e.preventDefault();
+                if (processing) return;
+
+                if ($('#pw-passphrase').val() !== passphrase) {
+                    console.log('store passphrase', $('#pw-passphrase').val());
+                    window.localStorage['passphrase'] = $('#pw-passphrase').val();
                 }
-                console.time('generating');
-                setTimeout(function() {$("#pw-progress").css('width', '0%');},3000);
-                $('body').css('cursor','progress');
+
+                $(this).prop('disabled', 'disabled').addClass('disabled');
+                console.log(this);
+                $('body').css('cursor','wait');
+
                 processing = true;
                 var stretch = parseInt($("#pw-pin").val(), 10);
                 if (!stretch) stretch = 1;
@@ -93,6 +117,7 @@
 
                 var x = 0, y = 0;
 
+                console.time('generating');
                 for (i = 0; i < stretch - 1; i++) {
                     x = (Math.floor((i / stretch) * 100) + 1);
                     if (x !== y && x % 10 === 0) {
@@ -102,16 +127,45 @@
                     y = x;
                     code = SHA512.hex(code);
                 }
+                console.timeEnd('generating');
+                console.log('complete');
 
                 // and now code for ascii - with numbers, punc, a-z
+                var safe = SHA512.any(code, window._app.safeAlphabet);
                 code = SHA512.any(code, window._app.alphabet); // last time encode with any.
                 console.log(code);
+                $("#pw-output-safe").val(safe.substr(0, 16));
                 $("#pw-output").val(code.substr(0, 16));
                 processing = false;
                 $('body').css('cursor', 'default');
+
                 console.timeEnd('generating');
+                $('#pw-progress').delay(1000).css('width', '0%');
+                $(this).prop('disabled', false).removeClass('disabled');
             });
 
+
+            function toggleTextPass(sel) {
+                var type = $(sel).get(0).getAttribute('type');
+                if (type === 'text') type = 'password';
+                else type = 'text';
+                $(sel).get(0).setAttribute('type', type);
+            }
+
+                $('#pw-passphrase-show').on('click', function(e) {
+                    e.preventDefault();
+                    toggleTextPass('#pw-passphrase');
+                });
+
+                $('#pw-output-safe-show').on('click', function(e) {
+                    e.preventDefault();
+                    toggleTextPass('#pw-output-safe');
+                });
+
+                $('#pw-output-show').on('click', function(e) {
+                    e.preventDefault();
+                    toggleTextPass('#pw-output');
+                });
 
             console.timeEnd('loaded');
         </script>

@@ -2,8 +2,10 @@ var Hashes = require('jshashes');
 
 // custom alphabet defined.
 window._app = {
-  Hashes : Hashes,
-  alphabet : 'abcdefghijklmnopqrstuvwzxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!#$%^&*()_+-={};":<>?,./'
+  Hashes   : Hashes,
+  alphabet : '0123456789abcdefghijklmnopqrstuvwzxyzABCDEFGHIJKLMNOPQRSTUVWXYZ~!#$%^&*()_+-={};":<>?,./',
+  safeAlphabet : '0123456789abcdefghijklmnopqrstuvwzxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  numeric  : '0123456789'
 };
 console.log('jsHashes loaded');
 
