@@ -66,12 +66,16 @@
         <script>
 
             var Hashes = window._app.Hashes; // from bundle.
-            var LZstring = window._app.LZstring;
 
             var processing = false;
             $("#pw-generate").on('click', function() {
-                if (processing) return;
+                console.log('processing:', processing);
+                if (processing) {
+                    console.log('generation in progress');
+                    return;
+                }
                 console.time('generating');
+                setTimeout(function() {$("#pw-progress").css('width', '0%');},3000);
                 $('body').css('cursor','progress');
                 processing = true;
                 var stretch = parseInt($("#pw-pin").val(), 10);
@@ -91,7 +95,10 @@
 
                 for (i = 0; i < stretch - 1; i++) {
                     x = (Math.floor((i / stretch) * 100) + 1);
-                    if (x !== y) $("#pw-progress").css('width', x + '%');
+                    if (x !== y && x % 10 === 0) {
+                        setTimeout(function() {$("#pw-progress").css('width', x + '%');},10);
+                        console.log(x, y);
+                    }
                     y = x;
                     code = SHA512.hex(code);
                 }
@@ -102,9 +109,9 @@
                 $("#pw-output").val(code.substr(0, 16));
                 processing = false;
                 $('body').css('cursor', 'default');
-                $('#pw-progress').delay(1000).css('width', '0%');
                 console.timeEnd('generating');
             });
+
 
             console.timeEnd('loaded');
         </script>
