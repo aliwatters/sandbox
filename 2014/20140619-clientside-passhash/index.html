@@ -13,58 +13,65 @@
                 <p>Caveats with current version
                 <ol>
                     <li>uses CDN for js libraries - should be inlined! trust no one.
-                    <li>once working use a password field for the output.
                     <li>currently just an academic exercise.
                     <li>how can two factor auth work with this - should be enabled where available.
-                    <li>use the browser to store this passcode
                     <li>add in length and character settings to match with website policies...
-                    <li>todo - progress bar -- not working as expected
+                    <li>add in a version - allows changing of password where forced change/compromised site.
                 </ol>
                 </p>
 
             </div>
             <div class='col-sm-12 well'>
-                <form action='file://dev/null' method='POST'>
+                <form action='file://dev/null' method='POST' class='form-horizontal'>
                     <div class="form-group">
-                        <label for="pw-email">Email address</label>
-                        <input type="email" class="form-control" id="pw-email" placeholder="username@example.org">
-                    </div>
-                    <div class="form-group">
-                        <label for="pw-pin">Your PIN Number</label>
-                        <input type="password" class="form-control" id="pw-pin" placeholder="Pin Number - or stretching...">
-                    </div>
-                    <div class="form-group">
-                        <label for="pw-domain">Domain</label>
-                        <input type="text" class="form-control" id="pw-domain" placeholder="www.example.org">
-                    </div>
-                    <div class="form-group">
-                        <label for="pw-passphrase">Passphrase</label>
-                        <div class="input-group">
-                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-passphrase-show'></span></span>
-                          <input type="password" class="form-control" id="pw-passphrase" placeholder="Some lovely long sentence that is unique to you and the site (if possible)">
-                          <span class="input-group-addon"><span class="glyphicon glyphicon-floppy-save" title='save on this browser' id='pw-output-safe-show'></span></span>
+                        <label for="pw-email" class='col-sm-2 control-label'>Email address</label>
+                        <div class='col-sm-4'>
+                            <input type="email" class="form-control" id="pw-email" placeholder="username@example.org">
+                        </div>
+                        <label for="pw-domain" class='col-sm-2 control-label'>Domain</label>
+                        <div class='col-sm-4'>
+                            <input type="text" class="form-control" id="pw-domain" placeholder="www.example.org">
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="pw-passphrase" class='col-sm-2 control-label'>Passphrase</label>
+                        <div class='col-sm-4'>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-passphrase-show'></span></span>
+                                <input type="password" class="form-control" id="pw-passphrase" placeholder="Some lovely long sentence that is unique to you and the site (if possible)">
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-floppy-save" title='save on this browser' id='pw-passphrase-save'></span></span>
+                            </div>
+                        </div>
+                        <label for="pw-pin" class='col-sm-2 control-label'>Your PIN Number</label>
+                        <div class='col-sm-4'>
+                            <input type="password" class="form-control" id="pw-pin" placeholder="Pin Number - or stretching factor...">
+                        </div>
+                    </div>
 
-                        <button class='form-control btn btn-primary' id='pw-generate'>Generate</button>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id='pw-progress' style="width:0">
+                    <div class="form-group">
+                        <div class='col-sm-12'>
+                            <button class='form-control btn btn-primary' id='pw-generate'>Generate</button>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id='pw-progress' style="width:0">
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                     <div class="form-group">
-                        <label for="pw-output-safe">Simple Passcode</label>
-                        <div class="input-group">
-                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-safe-show'></span></span>
-                          <input type='password' id='pw-output-safe' class='form-control'>
+                        <label for="pw-output-safe" class='col-sm-2 control-label'>Simple Passcode</label>
+                        <div class='col-sm-4'>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-safe-show'></span></span>
+                                <input type='password' id='pw-output-safe' class='form-control'>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="pw-output">Full Passcode</label>
-                        <div class="input-group">
-                          <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-show'></span></span>
-                          <input type='password' id='pw-output' class='form-control'>
+                        <label for="pw-output" class='col-sm-2 control-label'>Full Passcode</label>
+                        <div class='col-sm-4'>
+                            <div class="input-group">
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-asterisk" id='pw-output-show'></span></span>
+                                <input type='password' id='pw-output' class='form-control'>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -85,17 +92,13 @@
             console.log(passphrase);
             if (typeof passphrase !== 'undefined') {
                 $('#pw-passphrase').val(passphrase);
+                $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-saved');
             }
 
             var processing = false;
             $("#pw-generate").on('click', function(e) {
                 e.preventDefault();
                 if (processing) return;
-
-                if ($('#pw-passphrase').val() !== passphrase) {
-                    console.log('store passphrase', $('#pw-passphrase').val());
-                    window.localStorage['passphrase'] = $('#pw-passphrase').val();
-                }
 
                 $(this).prop('disabled', 'disabled').addClass('disabled');
                 console.log(this);
@@ -152,21 +155,49 @@
                 $(sel).get(0).setAttribute('type', type);
             }
 
-                $('#pw-passphrase-show').on('click', function(e) {
-                    e.preventDefault();
-                    toggleTextPass('#pw-passphrase');
-                });
+            $('#pw-passphrase-show').on('click', function(e) {
+                e.preventDefault();
+                toggleTextPass('#pw-passphrase');
+            });
 
-                $('#pw-output-safe-show').on('click', function(e) {
-                    e.preventDefault();
-                    toggleTextPass('#pw-output-safe');
-                });
+            $('#pw-output-safe-show').on('click', function(e) {
+                e.preventDefault();
+                toggleTextPass('#pw-output-safe');
+            });
 
-                $('#pw-output-show').on('click', function(e) {
-                    e.preventDefault();
-                    toggleTextPass('#pw-output');
-                });
+            $('#pw-output-show').on('click', function(e) {
+                e.preventDefault();
+                toggleTextPass('#pw-output');
+            });
 
+            $('#pw-passphrase').on('change keypress', function(e) {
+                $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-save');
+            });
+
+            $('#pw-passphrase-save').on('click', function(e) {
+                // toggle saving on this device
+                var stored = window.localStorage['passphrase'];
+                var val = $('#pw-passphrase').val();
+
+                if (!val && !stored) return alert('no phrase');
+
+                var action = 'save';
+                if (val === '') action = 'clear';
+                if (val === stored) action = 'clear';
+
+                if (action == 'clear') {
+                    if (confirm('clear passphrase on this device')) {
+                        window.localStorage.removeItem('passphrase');
+                        $('#pw-passphrase').val('');
+                        $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-save');
+                    }
+                    } else {
+                    if (confirm('save passphrase on this device')) {
+                        window.localStorage['passphrase'] = $('#pw-passphrase').val();
+                        $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-saved');
+                    }
+                }
+            });
             console.timeEnd('loaded');
         </script>
     </body>
