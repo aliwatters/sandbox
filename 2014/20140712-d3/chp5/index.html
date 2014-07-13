@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>D3 Page Template</title>
+        <script src='../d3/d3.js'></script>
+    </head>
+    <body>
+        <script>
+            var dataset = [5, 10, 15, 20, 25];
+
+            d3.select("body").append("div").text("New Single Div!");
+        
+            d3.select("body").selectAll("p")
+                .data(dataset)
+                .enter()
+                .append("p")
+                .text(function(d) {return "Paragraph " + d;});
+
+            d3.csv("foods.csv",function(err,data) {
+                if (err) return console.log('Error', err);
+
+                var yummy = function(d) {
+                        return " " + d.name + " " + (d.deliciousness > 49 ? "is" : "isn't") + " delicious"; 
+                };
+
+                var yummyColor = function(d) {
+                    return d.deliciousness >= 75 ? "green" : "red";
+                };
+
+                console.log(data);
+
+                d3.select("body").selectAll("span")
+                    .data(data)
+                    .enter()
+                    .append("span")
+                    .text(yummy)
+                    .style("color", yummyColor);
+            
+            });
+        </script>
+    </body>
+</html>
