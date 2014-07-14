@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>D3 Page Template</title>
+        <script src='../d3/d3.js'></script>
+        <style>
+            div.container {
+                width:100%;
+                height:450px;
+            }
+            div.item {
+                border:1px solid #ddd;
+                margin:20px;
+                padding:10px;
+                text-align:center;
+                height:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <button class="update-ex1" data-action="add">Add Data</button>
+            <button class="update-ex1" data-action="remove">Remove Data</button>
+            <div id='ex1' class='item'></div>
+        </div>
+        <script>
+            var dataset = [];
+            var i;
+            var v;
+            var max = 30;
+
+            var key = function(d) {
+                return d.k;
+            };
+            var val = function(d) {
+                return d.v;
+            };
+
+            for (i = 0; i < 10; i++) {
+                v = Math.round(Math.random() * max);
+                dataset.push({k:i,v:v});
+            }
+        
+            var w = parseInt(d3.select("#ex1").style("width").slice(0,-2), 10);
+            var h = parseInt(d3.select("#ex1").style("height").slice(0,-2), 10);
+
+            var barPadding = 1;
+
+
+            var xScale = d3.scale.ordinal()
+                .domain(d3.range(dataset.length))
+                .rangeRoundBands([0, w], 0.05);
+
+			var yScale = d3.scale.linear()
+                .domain([0, d3.max(dataset, val)])
+							.range([0, h]);
+			
+			//Create SVG element
+			var svg = d3.select("#ex1")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			//Create bars
+			svg.selectAll("rect")
+			   .data(dataset, key)
+			   .enter()
+			   .append("rect")
+			   .attr("x", function(d, i) {
+			   		return xScale(i);
+			   })
+			   .attr("y", function(d) {
+			   		return h - yScale(d.v);
+			   })
+			   .attr("width", xScale.rangeBand())
+			   .attr("height", function(d) {
+			   		return yScale(d.v);
+			   })
+			   .attr("fill", function(d) {
+					return "rgb(0, 0, " + (d.v * 10) + ")";
+			   });
+
+			//Create labels
+			svg.selectAll("text")
+			   .data(dataset, key)
+			   .enter()
+			   .append("text")
+			   .text(function(d) {
+			   		return d.v;
+			   })
+			   .attr("x", function(d, i) {
+			   		return xScale(i) + xScale.rangeBand() / 2;
+			   })
+			   .attr("y", function(d) {
+			   		return h - yScale(d.v) + 14;
+			   })
+			   .attr("text-anchor", "middle")
+			   .attr("font-family", "sans-serif")
+			   .attr("font-size", "11px")
+			   .attr("fill", "white");
+
+
+            d3.selectAll('.update-ex1')
+                .on("click", function() {
+
+                    var addItem = d3.select(this).attr("data-action") === "add";
+
+                    if (addItem) { // add value
+                        var newNumber = Math.floor(Math.random() * (max + 5) );	//New random integer (0-24)
+                        var newKey = dataset[dataset.length - 1].k +1;
+                        dataset.push({k:newKey,v:newNumber});
+                    } else {
+                        dataset.shift();
+                    }
+
+                    xScale.domain(d3.range(dataset.length));
+                    yScale.domain([0, d3.max(dataset, val)]); // update scale to reflect new max
+
+                    var bars = svg.selectAll("#ex1 rect")			//Select all bars
+                        .data(dataset, key);
+
+                    var texts = svg.selectAll("#ex1 text")
+                        .data(dataset, key);
+
+                    
+                    bars.enter()								//References the enter selection (a subset of the update selection)
+                        .append("rect")							//Creates a new rect
+                        .attr("x", w)							//Sets the initial x position of the rect beyond the far right edge of the SVG
+                        .attr("y", function(d) {				//Sets the y value, based on the updated yScale
+                            return h - yScale(d.v);
+                        })
+                        .attr("width", xScale.rangeBand())		//Sets the width value, based on the updated xScale
+                        .attr("height", function(d) {			//Sets the height value, based on the updated yScale
+                            return yScale(d.v);
+                        })
+                        .attr("fill", function(d) {				//Sets the fill value
+                            return "rgb(0, 0, " + (d.v * 10) + ")";
+                        });
+
+                    bars.transition()
+                        .duration(500)
+                        .attr("x", function(d, i) {				//Set new x position, based on the updated xScale
+                            return xScale(i);
+                        })
+                        .attr("y", function(d) {				//Set new y position, based on the updated yScale
+                            return h - yScale(d.v);
+                        })
+                        .attr("width", xScale.rangeBand())		//Set new width value, based on the updated xScale
+                        .attr("height", function(d) {			//Set new height value, based on the updated yScale
+                            return yScale(d.v);
+                        });
+
+
+                    bars.exit()
+                        .transition()
+                        .duration(500)
+                        .attr("x", - xScale.rangeBand())
+                        .remove();
+
+                    texts.enter()
+                        .append("text")
+                        .text(function(d) {
+                            return d.v;
+                       })
+                       .attr("x", w)
+                       .attr("y", function(d) {
+                            return h - yScale(d.v) + 14;
+                        })
+                       .attr("text-anchor", "middle")
+                       .attr("font-family", "sans-serif")
+                       .attr("font-size", "11px")
+                       .attr("fill", "white");;
+
+                    texts.transition()
+                        .duration(500)
+                       .attr("x", function(d, i) {
+                            return xScale(i) + xScale.rangeBand() / 2;
+                       })
+                       .attr("y", function(d) {
+                          return h - yScale(d.v) + 14;
+                      });
+
+                    texts.exit()
+                        .transition()
+                        .duration(500)
+                        .attr("x", - xScale.rangeBand()/2)
+                        .remove();
+
+
+                });
+           </script>
+    </body>
+</html>
