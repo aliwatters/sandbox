@@ -1,0 +1,23 @@
+/node_modules
+/cdn
+/assets
+/styles
+/templates
+/public
+/conf/hash.json
+/lang
+/docs
+
+# artifacts
+.DS_Store
+.svn
+*~
+*.swp
+*.rbc
+
+# sublime config
+*.sublime-project
+*.sublime-workspace
+
+npm-debug.log
+newrelic_agent.log

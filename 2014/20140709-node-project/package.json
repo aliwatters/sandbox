@@ -1,0 +1,50 @@
+{
+  "name": "Node.js HAPI Project Template",
+  "version": "0.0.1",
+  "description": "Code template for HAPI based node projects.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server",
+    "clean": "./node_modules/gulp/bin/gulp.js clean",
+    "build": "alias gulp='./node_modules/gulp/bin/gulp.js';gulp clean;gulp modules;gulp build",
+    "build-prod": "alias gulp='./node_modules/gulp/bin/gulp.js';gulp clean;gulp modules;gulp build --prod",
+    "watch": "./node_modules/gulp/bin/gulp.js watch",
+    "test": "alias gulp='./node_modules/gulp/bin/gulp.js';gulp js-beautify && gulp eslint",
+    "lint": "alias gulp='./node_modules/gulp/bin/gulp.js';gulp js-beautify && gulp eslint",
+    "install": "./build/setup"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^0.2.10",
+    "hapi": "^6.0.0",
+    "jquery": "^2.1.0",
+    "moment": "~2.5.1",
+    "underscore": "^1.6.0",
+    "ejs": "^1.0.0"
+  },
+  "devDependencies": {
+    "browserify": "^3.32.1",
+    "gulp": ">=3.8.5",
+    "gulp-concat": "^2.1.7",
+    "gulp-diff": "^0.1.0",
+    "gulp-eslint": "^0.1.6",
+    "gulp-less": "^1.2.2",
+    "gulp-minify-css": "^0.3.4",
+    "gulp-replace": "^0.2.0",
+    "gulp-jsbeautifier": "0.0.2",
+    "minimist": "^0.1.0",
+    "mkdirp": "^0.3.5",
+    "vinyl-source-stream": "^0.1.1",
+    "gulp-uglify": "^0.3.0",
+    "gulp-rename": "^1.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/<username>/<project>.git"
+  },
+  "bugs": {
+    "url": "https://github.com/<username>/<project>/issues"
+  },
+  "homepage": "https://github.com/<username>/<project>"
+}

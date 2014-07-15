@@ -1,0 +1,30 @@
+{
+  "tpl": {
+    "app.js": "debug/**/*.ejs"
+  },
+  "clean": [
+    "docs",
+    "public",
+    "assets",
+    "cdn",
+    "lang",
+    "styles",
+    "templates"
+  ],
+  "anatomy" : {
+    "styles": {},
+    "templates": {},
+    "lang": {"sub" : true},
+    "assets" : {"sub" : true}
+  },
+  "lint": [
+    "!node_modules/**/*.js",
+    "!modules/**/vendor/**/*.js",
+    "modules/**/*.js",
+    "lib/**/*.js",
+    "server/**/*.js",
+    "server.js",
+    "gulpfile.js",
+    "gulp/**/*.js"
+  ]
+}

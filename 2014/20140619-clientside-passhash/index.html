@@ -89,7 +89,6 @@
             var Hashes = window._app.Hashes; // from bundle.
 
             var passphrase = window.localStorage['passphrase'];
-            console.log(passphrase);
             if (typeof passphrase !== 'undefined') {
                 $('#pw-passphrase').val(passphrase);
                 $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-saved');
@@ -100,9 +99,11 @@
                 e.preventDefault();
                 if (processing) return;
 
-                $(this).prop('disabled', 'disabled').addClass('disabled');
-                console.log(this);
-                $('body').css('cursor','wait');
+                setTimeout(function() {
+                    $('#pw-generate').prop('disabled', 'disabled').addClass('disabled');
+                    $("#pw-progress").css('width', '1%');
+                    $('body').css('cursor','wait');
+                },1);
 
                 processing = true;
                 var stretch = parseInt($("#pw-pin").val(), 10);
@@ -124,8 +125,7 @@
                 for (i = 0; i < stretch - 1; i++) {
                     x = (Math.floor((i / stretch) * 100) + 1);
                     if (x !== y && x % 10 === 0) {
-                        setTimeout(function() {$("#pw-progress").css('width', x + '%');},10);
-                        console.log(x, y);
+                        setTimeout(function() { $("#pw-progress").css('width', x + '%');} , 1);
                     }
                     y = x;
                     code = SHA512.hex(code);
@@ -136,69 +136,76 @@
                 // and now code for ascii - with numbers, punc, a-z
                 var safe = SHA512.any(code, window._app.safeAlphabet);
                 code = SHA512.any(code, window._app.alphabet); // last time encode with any.
-                console.log(code);
                 $("#pw-output-safe").val(safe.substr(0, 16));
                 $("#pw-output").val(code.substr(0, 16));
-                processing = false;
-                $('body').css('cursor', 'default');
 
-                console.timeEnd('generating');
-                $('#pw-progress').delay(1000).css('width', '0%');
-                $(this).prop('disabled', false).removeClass('disabled');
-            });
+                setTimeout(
+                    function() {
+                        $('body').css('cursor', 'default');
+                        setTimeout(function(){
+                            $('#pw-progress').fadeOut(400, function() {
+                                setTimeout(function(){$('#pw-progress').css('width', '0%').show();}, 1000);
+                            });
+                         } ,500);
+                         $('#pw-generate').prop('disabled', false).removeClass('disabled');
+                }, 1);
+                    processing = false;
+
+                    console.timeEnd('generating');
+                });
 
 
-            function toggleTextPass(sel) {
-                var type = $(sel).get(0).getAttribute('type');
-                if (type === 'text') type = 'password';
-                else type = 'text';
-                $(sel).get(0).setAttribute('type', type);
-            }
+                    function toggleTextPass(sel) {
+                        var type = $(sel).get(0).getAttribute('type');
+                        if (type === 'text') type = 'password';
+                        else type = 'text';
+                        $(sel).get(0).setAttribute('type', type);
+                    }
 
-            $('#pw-passphrase-show').on('click', function(e) {
-                e.preventDefault();
-                toggleTextPass('#pw-passphrase');
-            });
+                    $('#pw-passphrase-show').on('click', function(e) {
+                        e.preventDefault();
+                        toggleTextPass('#pw-passphrase');
+                    });
 
-            $('#pw-output-safe-show').on('click', function(e) {
-                e.preventDefault();
-                toggleTextPass('#pw-output-safe');
-            });
+                    $('#pw-output-safe-show').on('click', function(e) {
+                        e.preventDefault();
+                        toggleTextPass('#pw-output-safe');
+                    });
 
-            $('#pw-output-show').on('click', function(e) {
-                e.preventDefault();
-                toggleTextPass('#pw-output');
-            });
+                    $('#pw-output-show').on('click', function(e) {
+                        e.preventDefault();
+                        toggleTextPass('#pw-output');
+                    });
 
-            $('#pw-passphrase').on('change keypress', function(e) {
-                $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-save');
-            });
-
-            $('#pw-passphrase-save').on('click', function(e) {
-                // toggle saving on this device
-                var stored = window.localStorage['passphrase'];
-                var val = $('#pw-passphrase').val();
-
-                if (!val && !stored) return alert('no phrase');
-
-                var action = 'save';
-                if (val === '') action = 'clear';
-                if (val === stored) action = 'clear';
-
-                if (action == 'clear') {
-                    if (confirm('clear passphrase on this device')) {
-                        window.localStorage.removeItem('passphrase');
-                        $('#pw-passphrase').val('');
+                    $('#pw-passphrase').on('change keypress', function(e) {
                         $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-save');
+                    });
+
+                    $('#pw-passphrase-save').on('click', function(e) {
+                        // toggle saving on this device
+                        var stored = window.localStorage['passphrase'];
+                        var val = $('#pw-passphrase').val();
+
+                        if (!val && !stored) return alert('no phrase');
+
+                        var action = 'save';
+                        if (val === '') action = 'clear';
+                        if (val === stored) action = 'clear';
+
+                        if (action == 'clear') {
+                        if (confirm('clear passphrase on this device')) {
+                            window.localStorage.removeItem('passphrase');
+                            $('#pw-passphrase').val('');
+                            $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-save');
+                        }
+                        } else {
+                        if (confirm('save passphrase on this device')) {
+                            window.localStorage['passphrase'] = $('#pw-passphrase').val();
+                            $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-saved');
+                        }
                     }
-                    } else {
-                    if (confirm('save passphrase on this device')) {
-                        window.localStorage['passphrase'] = $('#pw-passphrase').val();
-                        $('#pw-passphrase-save').removeClass('glyphicon-floppy-save glyphicon-floppy-saved').addClass('glyphicon-floppy-saved');
-                    }
-                }
-            });
-            console.timeEnd('loaded');
-        </script>
-    </body>
-</html>
+                });
+                console.timeEnd('loaded');
+            </script>
+        </body>
+    </html>
