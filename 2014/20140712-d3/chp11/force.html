@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Force layout</title>
+		<script type="text/javascript" src="../d3/d3.js"></script>
+		<style type="text/css">
+            div.container {
+                width:100%;
+                height:450px;
+            }
+            div.item {
+                border:1px solid #ddd;
+                margin:20px;
+                padding:10px;
+                text-align:center;
+                height:100%;
+            }
+
+			text {
+				font-family: sans-serif;
+				font-size: 12px;
+				fill: white;
+			}
+
+		</style>
+	</head>
+	<body>
+        <div class='container'>
+            <div id='ex1' class='item'></div>
+        </div>
+		<script type="text/javascript">
+
+            //Width and height
+            var w = parseInt(d3.select("#ex1").style("width").slice(0,-2), 10);
+            var h = parseInt(d3.select("#ex1").style("height").slice(0,-2), 10);
+
+            var dataset = {
+                nodes : [
+                    { name : 'sheldon' },
+                    { name : 'spinner' },
+                    { name : 'tarquin' },
+                    { name : 'tyrion' },
+                    { name : 'frodo' },
+                    { name : 'pippin' }
+                ],
+                edges : [
+                    { source : 0, target : 1},
+                    { source : 0, target : 2},
+                    { source : 0, target : 3},
+                    { source : 1, target : 2},
+                    { source : 1, target : 4},
+                    { source : 1, target : 5},
+                    { source : 2, target : 4},
+                    { source : 3, target : 4},
+                    { source : 4, target : 5}
+                ]
+            };
+
+            var force = d3.layout.force()
+                                .nodes(dataset.nodes)
+                                .links(dataset.edges)
+                                .size([w, h])
+                                .linkDistance([50])
+                                .charge([-100])
+                                .start();
+
+			//Easy colors accessible via a 10-step ordinal scale
+			var colors = d3.scale.category10();
+
+			//Create SVG element
+			var svg = d3.select("#ex1")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+
+            var edges = svg.selectAll("line")
+                            .data(dataset.edges)
+                            .enter()
+                            .append("line")
+                            .style("stroke", "#ccc")
+                            .style("stroke-width", 1);
+
+            var nodes = svg.selectAll("circle")
+                            .data(dataset.nodes)
+                            .enter()
+                            .append("circle")
+                            .attr("r", 10)
+                            .style("fill", function(d, i) {
+                                    return colors(i);
+                                    })
+                            .call(force.drag);
+
+
+            // ticks
+            force.on("tick", function() {
+                edges
+                    .attr('x1', function(d) { return d.source.x; })
+                    .attr('y1', function(d) { return d.source.y; })
+                    .attr('x2', function(d) { return d.target.x; })
+                    .attr('y2', function(d) { return d.target.y; });
+
+                nodes
+                    .attr('cx', function(d) { return d.x; })
+                    .attr('cy', function(d) { return d.y; });
+            });
+
+		</script>
+	</body>
+</html>
