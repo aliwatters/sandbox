@@ -5,16 +5,17 @@ import (
 )
 
 func Sqrt(x float64) float64 {
-	z := float64(x / 10 + 1) // better than 1
+	z := float64(x/10 + 1) // better than 1
 	fmt.Println("Starting with ", z)
 	count := 1
+
 	for {
 		old := z
-		z = z - (z * z - x) / (2 * x)
+		z = z - (z*z-x)/(2*x)
 		d := z - old
-		if d > -0.0001 && d < 0.0001 {
+		if d > -0.0001 && d < 0.0001 { // math.abs - but then might as well do math.sqrt
 			fmt.Println(count)
-			return z	
+			return z
 		}
 		count++
 	}
