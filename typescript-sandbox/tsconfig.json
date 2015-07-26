@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "out": "./greeter.js",
+        "sourceMap": true
+    },
+    "files": [
+        "greeter.ts"
+    ]
+}
