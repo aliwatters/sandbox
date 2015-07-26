@@ -8,7 +8,14 @@ var Student = (function () {
     return Student;
 })();
 function greeter(person) {
-    return "Hello, " + person.firstname + " " + person.lastname;
+    var title = person.title || '';
+    if (title.length > 0) {
+        title += ' ';
+    }
+    return "Hello, " + title + person.firstname + " " + person.lastname;
+}
+function alerter(person) {
+    alert(greeter(person));
 }
 var user = new Student('Joe', 'M', 'Doe');
 document.body.innerHTML = greeter(user);
