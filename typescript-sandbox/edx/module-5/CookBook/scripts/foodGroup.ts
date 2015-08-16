@@ -6,6 +6,6 @@
   }
 
   set name(val: string) {
-    this._name = name;
+    this._name = val;
   }
 }

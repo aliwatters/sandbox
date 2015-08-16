@@ -3,7 +3,7 @@ var renderer = null;
 window.onload = function () {
     var categoriesSelect = document.getElementById('RecipeCategory');
     categoriesSelect.onchange = function () { return loadRecipes(); };
-    var loader = new RecipeLoader("/JSON/recipeTypes.json");
+    var loader = new RecipeLoader("JSON/recipeTypes.json");
     loader.load();
     renderer = new Renderer();
 };

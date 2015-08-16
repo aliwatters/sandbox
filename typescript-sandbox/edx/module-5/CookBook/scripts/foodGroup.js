@@ -6,7 +6,7 @@ var FoodGroup = (function () {
             return this._name;
         },
         set: function (val) {
-            this._name = name;
+            this._name = val;
         },
         enumerable: true,
         configurable: true

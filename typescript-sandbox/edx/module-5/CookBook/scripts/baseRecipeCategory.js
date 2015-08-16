@@ -3,30 +3,25 @@ var BaseRecipeCategory = (function () {
         this._foodGroups = [];
     }
     Object.defineProperty(BaseRecipeCategory.prototype, "name", {
-        //TODO: Create get and set blocks for each of the variables in the declaration above.
-        get: function () { },
-        set: function () { },
+        get: function () {
+            return this._name;
+        },
+        set: function (val) {
+            this._name = val;
+        },
         enumerable: true,
         configurable: true
     });
-    BaseRecipeCategory.prototype.function = function () {
-        return this._name;
-    };
-    BaseRecipeCategory.prototype.function = function (val) {
-        this._name = val;
-    };
     Object.defineProperty(BaseRecipeCategory.prototype, "foodGroups", {
-        get: function () { },
-        set: function () { },
+        get: function () {
+            return this._foodGroups;
+        },
+        set: function (vals) {
+            this._foodGroups = vals;
+        },
         enumerable: true,
         configurable: true
     });
-    BaseRecipeCategory.prototype.function = function () {
-        return this._foodGroups;
-    };
-    BaseRecipeCategory.prototype.function = function (groups) {
-        this._foodGroups = groups;
-    };
     return BaseRecipeCategory;
 })();
 

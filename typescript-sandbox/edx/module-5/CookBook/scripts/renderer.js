@@ -15,6 +15,7 @@ var Renderer = (function () {
         foodGroups.value = '';
         var html = '<ul>';
         for (var i = 0, len = category.foodGroups.length; i < len; i++) {
+            console.log(category.foodGroups[i]);
             html += '<li>' + category.foodGroups[i].name + '</li>';
         }
         foodGroups.innerHTML = html + '</ul>';
