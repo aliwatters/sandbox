@@ -42,7 +42,7 @@ angular.module('stockDogApp')
           // 7 - send users to desired watchlist
           $scope.gotoList = function(listId) {
             $location.path('watchlist/' + listId);
-          }
+          };
         }
       };
     });

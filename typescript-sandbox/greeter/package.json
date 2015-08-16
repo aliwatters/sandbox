@@ -1,0 +1,15 @@
+{
+  "name": "typescript-sandbox-greeter",
+  "version": "0.0.1",
+  "description": "hello world stuff",
+  "author": "github.com/aliwatters",
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-typescript": "^2.8.0",
+    "gulp-uglify": "^1.2.0"
+  }
+}
