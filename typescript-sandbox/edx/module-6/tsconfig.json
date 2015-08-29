@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true
+    },
+    "filesGlob": "CookBook/**/*.ts",
+    "files": [
+        "CookBook/scripts/baseRecipeCategory.ts",
+        "CookBook/scripts/foodGroup.ts",
+        "CookBook/scripts/initializer.ts",
+        "CookBook/scripts/recipeCategories.ts",
+        "CookBook/scripts/recipeCategory.ts",
+        "CookBook/scripts/recipeLoader.ts",
+        "CookBook/scripts/renderer.ts"
+    ]
+}
