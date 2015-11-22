@@ -18,5 +18,6 @@ function alerter(person) {
     alert(greeter(person));
 }
 var user = new Student('Joe', 'M', 'Doe');
+var i = 100;
 document.body.innerHTML = greeter(user);
 //# sourceMappingURL=greeter.js.map
