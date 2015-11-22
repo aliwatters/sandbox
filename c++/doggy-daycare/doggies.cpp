@@ -52,19 +52,21 @@ int main ()
 
 
 	dogHappyHome.pickUpDog();
+	dogHappyHome.dropOffDog("Rex");
+	dogHappyHome.dropOffDog("Rover");
+	dogHappyHome.pickUpDog();
 	// here - do a while - get a dropOff pickUp of quit from stdin.
+
+	dogHappyHome.printContents();
 
 	return 0;
 }
 
 void DayCare::dropOffDog(string n) 
 {
-	Dog * dog;
-	dog = new Dog(n);
+	cout << "Drop Off\t" << n << "\n";
 
-	cout << "Drop Off\t" << dog->name << "\n";
-
-	pool[count] = *dog; // add do to the pool in position count.
+	pool[count] = Dog(n); // add dog to the pool in position count.
 	count++;
 	
 	return;
@@ -73,11 +75,10 @@ void DayCare::dropOffDog(string n)
 
 void DayCare::pickUpDog() 
 {
-	Dog * dog;
 	count--;
 	cout << "Pick Up\t" << pool[count].name << "\n";
 	
-	// pool[count] = null; // add an empty dog?
+	pool[count] = Dog(""); // add an empty dog
 
 	return;
 }
@@ -86,11 +87,7 @@ void DayCare::printContents()
 {
 	cout << setw(15) << left << "\nDoggy Day Care\n==============\n";
 	for( int i = 0; i < CAPACITY; i++ ) {
-		if (i < count) {
-			cout << setw(15) << left << i << "\t" << pool[i].name << "\n";
-		} else {
-			cout << setw(15) << left << i << "\t[Empty Slot]" << "\n";
-		}
+		cout << setw(15) << left << i << "\t" << pool[i].name << "\n";
 	}
 	cout << "\n";
 	return;
