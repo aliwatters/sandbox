@@ -1,3 +1,17 @@
-<h1>This is Second</h1>
-<div>Scope value: {{ name }}</div>
-<div>Num is: {{ num }}</div>
+<h1>Forecast for {{ city }}</h1>
+<div>
+  <hr /> Days: <a ng-class="{'bg-primary': days === '2'}" href="#/forecast/2">2</a> |
+  <a ng-class="{'bg-primary': days === '5'}" href="#/forecast/5">5</a> |
+  <a ng-class="{'bg-primary': days === '7'}" href="#/forecast/7">7</a>
+  <hr />
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <weather-result ng-repeat="w in weatherResult.list"
+      weather-day="w"
+      convert-to-standard="convertToFahrenheit(daytimeTemp)"
+      convert-to-date="convertToDate(weatherDay)"
+      date-format="MMMM d, y">
+    </weather-result>
+  </div>
+</div>
