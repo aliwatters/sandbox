@@ -1,5 +1,8 @@
 module.exports = {
-    entry: "./entry.js",
+    entry: {
+		a: "./entry.js",
+		b: "/webpack/hot/dev-server"
+	},
     output: {
         path: __dirname,
         filename: "bundle.js"
