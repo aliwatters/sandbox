@@ -17,7 +17,7 @@ function greeter(person: Person): string {
   if (title.length > 0) {
     title += ' ';
   }
-  return "Hello, "  + title + person.firstname + " " + person.lastname;
+  return "Hello, " + title + person.firstname + " " + person.lastname;
 }
 
 function alerter(person: Person): void {

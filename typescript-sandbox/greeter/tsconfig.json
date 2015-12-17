@@ -1,12 +1,19 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "noImplicitAny": true,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "sourceMap": true
-  },
-  "files": [
-    "greeter/greeter.ts"
-  ]
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true
+    },
+    "filesGlob": [
+        "*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ],
+    "files": [
+        "accumalator.ts",
+        "greeter.ts"
+    ]
 }
