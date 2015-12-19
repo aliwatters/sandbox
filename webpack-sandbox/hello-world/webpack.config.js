@@ -1,7 +1,8 @@
 module.exports = {
     entry: {
-		a: "./entry.js",
-		b: "/webpack/hot/dev-server"
+		default: "./entry.js",
+		"/test": "./entry.js",
+		"/webpack/hot/dev-server": "./entry.js"
 	},
     output: {
         path: __dirname,
@@ -9,7 +10,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.css$/, loader: "style!css" }
+            { test: /\.css$/, loader: "style!css!" }
         ]
     }
 };
