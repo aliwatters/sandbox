@@ -220,3 +220,62 @@ Events:
 ```
 
 Eventually tried rebooting the host (stinky), which didn't fix the issue.
+
+Created: https://github.com/ubuntu/microk8s/issues/1830
+
+Things looked weird, lots modules were disabled/clean -- so a reinstall of microk8s was suggested.
+
+`snap remove microk8s --purge`
+
+Went back to start of doc, reinstalled, ran commands and all was working.
+
+### Module 5; Scaling replica sets
+
+`$ kubectl scale deployments/kubernetes-bootcamp --replicas=4` -- scale up the replica-sets
+
+```
+$ kubectl get rs
+NAME                             DESIRED   CURRENT   READY   AGE
+kubernetes-bootcamp-57978f5f5d   4         4         4       41m
+```
+
+and pods
+
+```
+$ kubectl get pods -o wide
+NAME                                   READY   STATUS    RESTARTS   AGE    IP            NODE     NOMINATED NODE   READINESS GATES
+kubernetes-bootcamp-57978f5f5d-tvpx5   1/1     Running   0          46m    10.1.134.66   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-rzfdt   1/1     Running   0          5m9s   10.1.134.73   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-v5v5v   1/1     Running   0          5m9s   10.1.134.71   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-6qf2s   1/1     Running   0          5m9s   10.1.134.72   stinky   <none>           <none>
+```
+
+Setup more env vars
+
+```
+export NODE_PORT=$(kubectl get services/kubernetes-bootcamp -o go-template='{{(index .spec.ports 0).nodePort}}')
+echo NODE_PORT=$NODE_PORT
+```
+
+Scale down the number of replicas
+
+```
+$ kubectl scale deployments/kubernetes-bootcamp --replicas=2
+deployment.apps/kubernetes-bootcamp scaled
+
+$ kubectl get deployments
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+kubernetes-bootcamp   2/2     2            2           63m
+
+
+$ kubectl get pods -o wide
+NAME                                   READY   STATUS        RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+kubernetes-bootcamp-57978f5f5d-tvpx5   1/1     Running       0          64m   10.1.134.66   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-v5v5v   1/1     Running       0          22m   10.1.134.71   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-6qf2s   0/1     Terminating   0          22m   10.1.134.72   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-rzfdt   0/1     Terminating   0          22m   10.1.134.73   stinky   <none>           <none>
+```
+
+### Module 6; updating
+
+https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/
