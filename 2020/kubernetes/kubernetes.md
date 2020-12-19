@@ -402,7 +402,34 @@ users:
     token: OFA...full token...az0K
 ```
 
-TODO:
+## Kompose
 
-- run from a config, where are the images?
-- docker compose via kompose
+`sudo snap install kompose` -- install kompose
+
+```
+$ kompose convert -f ~/git/travelblog/docker-compose.yml
+WARN Volume mount on the host "/home/ali/git/travelblog/legacy" isn't supported - ignoring path on the host
+WARN Volume mount on the host "/home/ali/git/travelblog/legacy" isn't supported - ignoring path on the host
+WARN Volume mount on the host "/home/ali/git/travelblog/nginx/site.conf" isn't supported - ignoring path on the host
+WARN Volume mount on the host "/home/ali/git/travelblog/nginx/ssl" isn't supported - ignoring path on the host
+INFO Kubernetes file "php-service.yaml" created
+INFO Kubernetes file "web-service.yaml" created
+INFO Kubernetes file "php-deployment.yaml" created
+INFO Kubernetes file "php-claim0-persistentvolumeclaim.yaml" created
+INFO Kubernetes file "web-deployment.yaml" created
+INFO Kubernetes file "web-claim0-persistentvolumeclaim.yaml" created
+INFO Kubernetes file "web-claim1-persistentvolumeclaim.yaml" created
+INFO Kubernetes file "web-claim2-persistentvolumeclaim.yaml" created
+```
+
+So first thing to address is that the code ran in my docker-compose file is on a volume mount, which isn't a thing in k8s. We need all the code to be in the image (of course).
+
+The output files don't work with kubctl.
+
+```
+$ kubectl apply -f *.yaml
+error: Unexpected args: [php-deployment.yaml php-service.yaml web-claim0-persistentvolumeclaim.yaml web-claim1-persistentvolumeclaim.yaml web-claim2-persistentvolumeclaim.yaml web-deployment.yaml web-service.yaml]
+See 'kubectl apply -h' for help and examples
+```
+
+More work to do!
