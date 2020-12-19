@@ -279,3 +279,130 @@ kubernetes-bootcamp-57978f5f5d-rzfdt   0/1     Terminating   0          22m   10
 ### Module 6; updating
 
 https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/
+
+```
+$ kubectl scale deployments/kubernetes-bootcamp --replicas=4
+deployment.apps/kubernetes-bootcamp scaled
+$ kubectl get pods -o wide
+NAME                                   READY   STATUS    RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+kubernetes-bootcamp-57978f5f5d-tvpx5   1/1     Running   0          12h   10.1.134.66   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-v5v5v   1/1     Running   0          11h   10.1.134.71   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-bt4pq   1/1     Running   0          4s    10.1.134.74   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-5d8st   1/1     Running   0          4s    10.1.134.75   stinky   <none>           <none>
+```
+
+Now update the image to v2.
+
+```
+$ kubectl get pods -o wide
+NAME                                   READY   STATUS              RESTARTS   AGE    IP            NODE     NOMINATED NODE   READINESS GATES
+kubernetes-bootcamp-57978f5f5d-tvpx5   1/1     Running             0          12h    10.1.134.66   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-v5v5v   1/1     Running             0          11h    10.1.134.71   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-5d8st   1/1     Running             0          100s   10.1.134.75   stinky   <none>           <none>
+kubernetes-bootcamp-57978f5f5d-bt4pq   1/1     Terminating         0          100s   10.1.134.74   stinky   <none>           <none>
+kubernetes-bootcamp-769746fd4-zh5gq    0/1     ContainerCreating   0          3s     <none>        stinky   <none>           <none>
+kubernetes-bootcamp-769746fd4-nrbvt    0/1     ContainerCreating   0          3s     <none>        stinky   <none>           <none>
+```
+
+A few minutes later the rolling update has completed.
+
+```
+$ kubectl get pods -o wide
+NAME                                  READY   STATUS    RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+kubernetes-bootcamp-769746fd4-zh5gq   1/1     Running   0          13m   10.1.134.76   stinky   <none>           <none>
+kubernetes-bootcamp-769746fd4-nrbvt   1/1     Running   0          13m   10.1.134.77   stinky   <none>           <none>
+kubernetes-bootcamp-769746fd4-r6s4g   1/1     Running   0          13m   10.1.134.78   stinky   <none>           <none>
+kubernetes-bootcamp-769746fd4-qk5t4   1/1     Running   0          13m   10.1.134.79   stinky   <none>           <none>
+```
+
+it can be verified with
+
+```
+$ kubectl rollout status deployments/kubernetes-bootcamp
+deployment "kubernetes-bootcamp" successfully rolled out
+```
+
+Now to rollback a rollout
+
+```
+$ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=gcr.io/google-samples/kubernetes-bootcamp:v10
+deployment.apps/kubernetes-bootcamp image updated
+```
+
+v10 isn't a valid image, so it fails.
+
+```
+$ kubectl get pods
+NAME                                  READY   STATUS             RESTARTS   AGE
+kubernetes-bootcamp-769746fd4-zh5gq   1/1     Running            0          23m
+kubernetes-bootcamp-769746fd4-nrbvt   1/1     Running            0          23m
+kubernetes-bootcamp-769746fd4-qk5t4   1/1     Running            0          22m
+kubernetes-bootcamp-597654dbd-crgsw   0/1     ImagePullBackOff   0          3m32s
+kubernetes-bootcamp-597654dbd-nmf2b   0/1     ErrImagePull       0          3m32s
+```
+
+Rollback with
+
+```
+$ kubectl rollout undo deployments/kubernetes-bootcamp
+deployment.apps/kubernetes-bootcamp rolled back
+```
+
+After this the previous image `v2` is used.
+
+That's the end o the tutorial. Didn't cover config files though.
+
+### Kubernetes config files
+
+You can find the running kube's config with a command.
+
+```
+$ kubectl config view --minify
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://127.0.0.1:16443
+  name: microk8s-cluster
+contexts:
+- context:
+    cluster: microk8s-cluster
+    user: admin
+  name: microk8s
+current-context: microk8s
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    token: REDACTED
+```
+
+or look at the source file
+
+```
+$ more .kube/config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiB...full cert...FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    server: https://127.0.0.1:16443
+  name: microk8s-cluster
+contexts:
+- context:
+    cluster: microk8s-cluster
+    user: admin
+  name: microk8s
+current-context: microk8s
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    token: OFA...full token...az0K
+```
+
+TODO:
+
+- run from a config, where are the images?
+- docker compose via kompose
