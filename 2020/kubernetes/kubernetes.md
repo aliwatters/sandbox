@@ -433,3 +433,104 @@ See 'kubectl apply -h' for help and examples
 ```
 
 More work to do!
+
+Some progress here though! I added a `COPY . /legacy` to the `Dockerfile-php7` file. Now;
+
+```
+$ kubectl apply -f php-deployment.yaml
+deployment.apps/php created
+```
+
+Dug in further, all the volumes in the `docker-compose.yml` became `<name>-persistentvolumeclam.yaml` and had details in the `<service>-yaml` file. I manually removed the references and claim file, and restarted. The deployment now fully starts!
+
+Exposing the php pods as a service;
+
+```
+$ kubectl expose deployment/php
+service/php exposed
+
+$ kubectl get services
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+kubernetes   ClusterIP   10.152.183.1     <none>        443/TCP    2d1h
+php          ClusterIP   10.152.183.196   <none>        9000/TCP   50s
+```
+
+Note: because the service was created after the pods, there's no env var set for service right now. To fix this scale back to 0, and back up to 2.
+
+```
+$ kubectl scale deployment php --replicas=2
+deployment.apps/php scaled
+ali@stinky:~/git/travelblog/kubernetes$ kubectl get pods -l run=php -o wide
+No resources found in default namespace.
+ali@stinky:~/git/travelblog/kubernetes$ kubectl get pods -o wide
+NAME                   READY   STATUS        RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+php-67676b47c5-mg8jm   1/1     Terminating   0          18m   10.1.134.83   stinky   <none>           <none>
+php-67676b47c5-hxvsg   1/1     Terminating   0          13m   10.1.134.84   stinky   <none>           <none>
+php-67676b47c5-4wx8z   1/1     Running       0          22s   10.1.134.85   stinky   <none>           <none>
+php-67676b47c5-ktcch   1/1     Running       0          22s   10.1.134.86   stinky   <none>           <none>
+
+$ kubectl exec php-67676b47c5-4wx8z -- printenv | grep SERVICE
+KUBERNETES_SERVICE_HOST=10.152.183.1
+KUBERNETES_SERVICE_PORT=443
+PHP_SERVICE_HOST=10.152.183.196
+PHP_SERVICE_PORT=9000
+KUBERNETES_SERVICE_PORT_HTTPS=443
+```
+
+So I have an image running, called "php", but when shell in;
+
+1. no ps
+2. php is running, see the ps output
+3. it's not my image (with the travelblog stuff on top), it's just the base php image.
+4. it's php 8.0.0 -- not php 7.x which TB runs on.
+
+```
+root@php-67676b47c5-4wx8z:/etc# apt-get update && apt-get install -y procps
+# ... installs
+
+root@php-67676b47c5-4wx8z:/# ps aux
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.1  81612 22704 ?        Ss   15:47   0:00 php -a
+root          11  0.0  0.0   3976  3292 pts/0    Ss   16:01   0:00 bash
+root         580  0.0  0.0   7636  2680 pts/0    R+   16:09   0:00 ps aux
+
+root@php-67676b47c5-4wx8z:/# php -v
+PHP 8.0.0 (cli) (built: Dec 18 2020 21:07:48) ( NTS )
+Copyright (c) The PHP Group
+Zend Engine v4.0.0-dev, Copyright (c) Zend Technologies
+
+
+root@php-67676b47c5-4wx8z:/# find . -name travelblog -print
+root@php-67676b47c5-4wx8z:/# find . -name php -print
+./usr/local/etc/php
+./usr/local/include/php
+./usr/local/lib/php
+./usr/local/bin/php
+./usr/local/php
+```
+
+Next steps:
+
+- investigate why the image isn't as expected
+- figure out how to get php responeding externally to the container
+- add in nginx, and get it sending requests to the tb-php image
+
+Note: read much on this page to get this far https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/
+
+## Cleaning up
+
+```
+$ kubectl delete deployment kubernetes-bootcamp
+deployment.apps "kubernetes-bootcamp" deleted
+$ kubectl get deployment
+No resources found in default namespace.
+$ kubectl get pods
+NAME                                  READY   STATUS        RESTARTS   AGE
+kubernetes-bootcamp-769746fd4-zh5gq   1/1     Terminating   0          36h
+kubernetes-bootcamp-769746fd4-blxbn   1/1     Terminating   0          35h
+kubernetes-bootcamp-769746fd4-qk5t4   1/1     Terminating   0          36h
+kubernetes-bootcamp-769746fd4-nrbvt   1/1     Terminating   0          36h
+
+$ kubectl delete service kubernetes-bootcamp
+service "kubernetes-bootcamp" deleted
+```
