@@ -14,9 +14,13 @@ Creating images from running containers is via `docker commit -c 'CMD ["redis-se
 
 ## Section 4
 
-Course project, nodejs web app.
+Course project, nodejs web app. All in `simpleweb`.
 
 ```
  $ docker build -t aliwatters/simpleweb .
  $ docker run -p 5000:8080 aliwatters/simpleweb
 ```
+
+Visit: http://localhost:5000/
+
+**Debug**: `docker run -it aliwatters/simpleweb sh`
