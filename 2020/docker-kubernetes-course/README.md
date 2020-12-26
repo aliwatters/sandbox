@@ -30,3 +30,29 @@ Visit: http://localhost:5000/
 Server counting app, see `visits` directory. Introduce `docker-compose` -- restarts is something I'd not gone into before.
 
 ## Section 6 - production grade workflow
+
+Nice, using gitub and feature branches. Changes to the course;
+
+`npx create-react-app frontend` -- rather than install `create-react-app` globally
+
+Yarn is used by default, not npm. Should be able to use interchangebly.
+
+Note; remove `node_modules` before building image. This save 155mb being copied in! (`create-react-app` installs this, only needed in the container which we're setting up for dev)
+
+**Lesson 72**:
+
+`docker run -it -p 3000:3000 CONTAINER_ID` -- needs the `-it`
+
+**Lesson 75**:
+
+docker volumes, great. `$ docker run -p 3000:3000 -v /app/node_modules -v $PWD:/app bb8db8695daf `
+
+Note: the `-v /app/node_modules` -- doesn't exist in the host, but adds a volume for the image.
+
+**Lesson 76**:
+
+`docker-compose` version of the commands above.
+
+**Lesson 81**:
+
+Test setup
