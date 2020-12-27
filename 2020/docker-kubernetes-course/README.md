@@ -53,6 +53,28 @@ Note: the `-v /app/node_modules` -- doesn't exist in the host, but adds a volume
 
 `docker-compose` version of the commands above.
 
-**Lesson 81**:
+**Lesson 83**:
 
-Test setup
+On the `docker-compose` test setup. You can still `exec` into the running container and use the ui for react tests. But `docker attach <id>` won't work as explained in the video.
+
+```
+$ docker ps
+CONTAINER ID        IMAGE                                     COMMAND                  CREATED             STATUS              PORTS                    NAMES
+3791196255d8        docker-kubernetes-course-frontend_tests   "docker-entrypoint.s…"   52 seconds ago      Up 51 seconds                                docker-kubernetes-course-frontend_tests_1
+fc7561af990d        docker-kubernetes-course-frontend_web     "docker-entrypoint.s…"   53 seconds ago      Up 51 seconds       0.0.0.0:3000->3000/tcp   docker-kubernetes-course-frontend_web_1
+
+$ docker exec -it 3791196255d8 npm run test
+ PASS  src/App.test.js
+  ✓ renders react link (68 ms)
+  ✓ it renders without crashing (14 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        3.206 s
+Ran all test suites.
+
+Watch Usage: Press w to show more.
+```
+
+Not perfect either, and as the default is watch mode anyway... not sure if it's that useful.
