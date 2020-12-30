@@ -78,3 +78,58 @@ Watch Usage: Press w to show more.
 ```
 
 Not perfect either, and as the default is watch mode anyway... not sure if it's that useful.
+
+**Lesson 90**: Multi-step builds
+
+Note there is some issues with named builds in AWS right now;
+
+```
+updated 10-1-2020
+
+In the next lecture, we will be creating a multi-step build in our production Dockerfile. AWS currently will fail if you attempt to use a named builder as shown.
+
+To remedy this, we should create an unnamed builder like so:
+
+Instead of this:
+
+    FROM node:alpine as builder
+    WORKDIR '/app'
+    COPY package.json .
+    RUN npm install
+    COPY . .
+    RUN npm run build
+
+    FROM nginx
+    COPY --from=builder /app/build /usr/share/nginx/html
+
+Do this:
+
+    FROM node:alpine
+    WORKDIR '/app'
+    COPY package.json .
+    RUN npm install
+    COPY . .
+    RUN npm run build
+
+    FROM nginx
+    COPY --from=0 /app/build /usr/share/nginx/html
+```
+
+So -- use the step number and leave out the name.
+
+## Section 7 - Deploy to AWS
+
+**Lesson 100+**:
+AWS Elastic Beanstalk deployment. Changes in AWS mean;
+
+> When creating our Elastic Beanstalk environment in the next lecture, we need to select **Docker running on 64bit Amazon Linux** instead of _Docker running on 64bit Amazon Linux 2_. This will ensure that our container is built using the Dockerfile and not the compose file.
+
+Note: I also set up a new user, with only permissions on AWS ElasticBeanstalk (for now) for this course.
+
+Created `DockerKubernetesCourseFrontend-env` environment and `docker-kubernetes-course-frontend` application.
+
+Ok ran through all the steps in lessons, and https://github.com/aliwatters/docker-kubernetes-course-frontend -- now deploys to elasticbeanstalk on merge to the `main` branch.
+
+## Section 8 - Multi-container app
+
+Building an over the top fibonacci system. Note: pretty much a JS section, skippable as no docker or kubernetes content. I'm going to do it... might be a completionist.
