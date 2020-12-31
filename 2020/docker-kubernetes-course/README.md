@@ -133,3 +133,19 @@ Ok ran through all the steps in lessons, and https://github.com/aliwatters/docke
 ## Section 8 - Multi-container app
 
 Building an over the top fibonacci system. Note: pretty much a JS section, skippable as no docker or kubernetes content. I'm going to do it... might be a completionist.
+
+## Section 9 - Dockerizing the services
+
+Note: debugging of the redis connections is really tricky with the `retry_strategy` set to `() => 1000`. Replace with;
+
+```
+{
+  ... ,
+  retry_strategy: (err) => {
+    console.error('REDIS', err);
+    return 1000;
+  }
+}
+```
+
+actually outputs the errors.
