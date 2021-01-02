@@ -130,9 +130,15 @@ Created `DockerKubernetesCourseFrontend-env` environment and `docker-kubernetes-
 
 Ok ran through all the steps in lessons, and https://github.com/aliwatters/docker-kubernetes-course-frontend -- now deploys to elasticbeanstalk on merge to the `main` branch.
 
+![Travis CI](./img/simple-travis-ci.png)
+
+![Running App](./img/simple-running-app.png)
+
 ## Section 8 - Multi-container app
 
 Building an over the top fibonacci system. Note: pretty much a JS section, skippable as no docker or kubernetes content. I'm going to do it... might be a completionist.
+
+https://github.com/aliwatters/docker-kubernetes-course-complex
 
 ## Section 9 - Dockerizing the services
 
@@ -149,3 +155,21 @@ Note: debugging of the redis connections is really tricky with the `retry_strate
 ```
 
 actually outputs the errors.
+
+## Section 10 & 11 - multicontainer hosting on AWS
+
+Via elastic beanstalk and travis. Lots of detail in the [repo](https://github.com/aliwatters/docker-kubernetes-course-complex) and [AWS Cheatsheet](./AWS-cheatsheet.md)
+
+Note: gotcha on travis, `docker push` doesn't die with an error code if fails authentication. Open up the drop downs to see errors as needed! I had an error in a password at one point.
+
+![DockerHub](./img/docker-hub-images.png)
+
+![TravisCI Log](./img/travis-push-log.png)
+
+![AWS ELB](./img/dkcc-elb-running.png)
+
+![Running App](./img/dkcc-running-app.png)
+
+## Section 12 - kubernetes
+
+Explanation
