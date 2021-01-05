@@ -243,3 +243,7 @@ $ curl http://10.1.134.104:3000/
 Because `minikube` runs a VM, internal resources are hidden away. On `microk8s` the host takes the place of the VM (it's already linux!) so uses the native networking layer (et al). So internal addresses are available.
 
 Keep in mind, the IPs pods are assigned will change though, it's better to use the external ip.
+
+**Lesson 214** -- redeploying images. Turns out rebuilding a deployment based on an updated image is a pita. Tags with the versions are needed in the build step, and the `<deployment>.yaml` file would need updated in there.
+
+https://github.com/kubernetes/kubernetes/issues/33664
