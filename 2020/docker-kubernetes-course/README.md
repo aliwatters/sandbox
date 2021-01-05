@@ -172,4 +172,74 @@ Note: gotcha on travis, `docker push` doesn't die with an error code if fails au
 
 ## Section 12 - kubernetes
 
-Explanation
+Explanation, and note use `image: stephengrider/multi-client` as breaking changes have been introduced on the client.
+
+Note: `minikube` is used in the course, I'm using `microk8s`. I'll note any differences.
+
+First difference; `minikube ip` works great, `microk8s ip` isn't a command. You have to look for the ip of the docker or vxlan.calico interfaces in `ifconfig`. In my case; the ips are `10.1.134.64` and `172.17.0.1`.
+
+[The running app http://172.17.0.1:31515/](http://172.17.0.1:31515/)
+
+![app running on kubernetes](./img/client-on-kubernetes.png)
+
+Also:
+
+```
+$ kubectl describe services
+Name:              kubernetes
+Namespace:         default
+Labels:            component=apiserver
+                   provider=kubernetes
+Annotations:       <none>
+Selector:          <none>
+Type:              ClusterIP
+IP Families:       <none>
+IP:                10.152.183.1
+IPs:               10.152.183.1
+Port:              https  443/TCP
+TargetPort:        16443/TCP
+Endpoints:         192.168.86.104:16443
+Session Affinity:  None
+Events:            <none>
+```
+
+The Endpoint (`192.168.86.104:31515`) here also has the app running. So that's three IPs that could be what I'm looking for, `192.168.86.104`, `10.1.134.64` and `172.17.0.1`.
+
+Posted a [feature](https://github.com/ubuntu/microk8s/issues/1836) request on the microk8s github, this seems way too complex for no good reason.
+
+## Section 13 - kubernetes deployments
+
+Deployments detail how to organize a number of pods. Think: `deployments -< pods -< containers`
+
+### Commands:
+
+`kubectl apply -f client-pod.yaml` -- sets up the objects in the file `client-pod.yaml`
+`kubectl delete -f client-pod.yaml` -- tearsdown the objects in the file `client-pod.yaml`
+
+Note: `kubectl delete` is the one situation where we issue imperative commands, vs declarative config files.
+
+```
+$ kubectl apply -f client-deployment.yaml
+deployment.apps/client-deployment created
+$ kubectl get pods
+NAME                                 READY   STATUS    RESTARTS   AGE
+client-deployment-7cb6c958f7-jdd8p   1/1     Running   0          11s
+$ kubectl get deployments
+NAME                READY   UP-TO-DATE   AVAILABLE   AGE
+client-deployment   1/1     1            1           45s
+```
+
+Note: on minikube, internal IPs are not available on the host machine, but on microk8s they are;
+
+```
+$ kubectl get pods -o wide
+NAME                                 READY   STATUS    RESTARTS   AGE     IP             NODE     NOMINATED NODE   READINESS GATES
+client-deployment-7cb6c958f7-jdd8p   1/1     Running   0          5m49s   10.1.134.104   stinky   <none>           <none>
+
+$ curl http://10.1.134.104:3000/
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><link rel="manifest" href="/manifest.json"><link rel="shortcut icon" href="/favicon.ico"><title>React App</title><link href="/static/css/main.c17080f1.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div><script type="text/javascript" src="/static/js/main.a2449523.js"></script></body></html>
+```
+
+Because `minikube` runs a VM, internal resources are hidden away. On `microk8s` the host takes the place of the VM (it's already linux!) so uses the native networking layer (et al). So internal addresses are available.
+
+Keep in mind, the IPs pods are assigned will change though, it's better to use the external ip.
