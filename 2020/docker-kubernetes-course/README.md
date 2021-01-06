@@ -247,3 +247,31 @@ Keep in mind, the IPs pods are assigned will change though, it's better to use t
 **Lesson 214** -- redeploying images. Turns out rebuilding a deployment based on an updated image is a pita. Tags with the versions are needed in the build step, and the `<deployment>.yaml` file would need updated in there.
 
 https://github.com/kubernetes/kubernetes/issues/33664
+
+Updating image version via command;
+
+```
+$ kubectl set image deployment/client-deployment client=stephengrider/multi-client:v5
+deployment.apps/client-deployment image updated
+$ kubectl get pods
+NAME                                 READY   STATUS              RESTARTS   AGE
+client-deployment-7cb6c958f7-jdd8p   1/1     Running             0          23h
+client-deployment-59b7f8c74b-mjrf2   0/1     ContainerCreating   0          10s
+$ kubectl get pods
+NAME                                 READY   STATUS        RESTARTS   AGE
+client-deployment-59b7f8c74b-mjrf2   1/1     Running       0          16s
+client-deployment-7cb6c958f7-jdd8p   0/1     Terminating   0          23h
+$ kubectl get pods
+NAME                                 READY   STATUS    RESTARTS   AGE
+client-deployment-59b7f8c74b-mjrf2   1/1     Running   0          105s
+```
+
+**Lesson 217-219** -- vm docker, client link.
+
+Notes: I'm running microk8s, so no virtual machine. In the course they run `$ eval $(minikube docker-env)` at that point docker-client is linked to the docker server within the minikube VM.
+
+Note: configs I used in section this are in the [dck-simple-k8s directory](./dkc-simple-k8s)
+
+## Section 14 - a multi-container k8s deployment
+
+Note: configs I use in section this are in the [complex-219 directory](./complex-219)
