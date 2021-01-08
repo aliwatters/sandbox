@@ -275,3 +275,23 @@ Note: configs I used in section this are in the [dck-simple-k8s directory](./dkc
 ## Section 14 - a multi-container k8s deployment
 
 Note: configs I use in section this are in the [complex-219 directory](./complex-219)
+
+**Lesson 229** -- combining k8s config files
+
+The course is making 11 or so separate files, one for each component. It's possible to combine into a single file.
+
+Basically -- separate each file with a `---` eg.
+
+```
+apiVersion: apps/v1
+kind: Deployment
+...
+---
+apiVersion: v1
+kind: Service
+...
+---
+# more config etc
+```
+
+Gut check, I prefer the single file per component approach, with a good naming convention very obvious where the config is.
