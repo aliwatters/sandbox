@@ -295,3 +295,127 @@ kind: Service
 ```
 
 Gut check, I prefer the single file per component approach, with a good naming convention very obvious where the config is.
+
+**Lesson 231** -- applying
+
+```
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ ls
+client-cluster-ip-service.yaml  server-cluster-ip-service.yaml  worker-deployment.yaml
+client-deployment.yaml          server-deployment.yaml
+
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl apply -f .
+service/client-cluster-ip-service unchanged
+deployment.apps/client-deployment unchanged
+service/server-cluster-ip-service created
+deployment.apps/server-deployment created
+deployment.apps/worker-deployment created
+
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl get all
+NAME                                     READY   STATUS    RESTARTS   AGE
+pod/client-deployment-7cb6c958f7-8xdsf   1/1     Running   0          8h
+pod/client-deployment-7cb6c958f7-vcszh   1/1     Running   0          8h
+pod/client-deployment-7cb6c958f7-rx958   1/1     Running   0          8h
+pod/server-deployment-9bff8dfb-bxpwc     1/1     Running   0          88s
+pod/worker-deployment-666c96ffc5-dtqmd   1/1     Running   0          88s
+pod/server-deployment-9bff8dfb-fqvwh     1/1     Running   0          88s
+pod/server-deployment-9bff8dfb-rhvjw     1/1     Running   0          88s
+
+NAME                                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                  ClusterIP   10.152.183.1     <none>        443/TCP    8h
+service/client-cluster-ip-service   ClusterIP   10.152.183.60    <none>        3000/TCP   8h
+service/server-cluster-ip-service   ClusterIP   10.152.183.138   <none>        5000/TCP   88s
+
+NAME                                READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/client-deployment   3/3     3            3           8h
+deployment.apps/worker-deployment   1/1     1            1           88s
+deployment.apps/server-deployment   3/3     3            3           88s
+
+NAME                                           DESIRED   CURRENT   READY   AGE
+replicaset.apps/client-deployment-7cb6c958f7   3         3         3       8h
+replicaset.apps/worker-deployment-666c96ffc5   1         1         1       88s
+replicaset.apps/server-deployment-9bff8dfb     3         3         3       88s
+
+
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl logs pod/server-deployment-9bff8dfb-fqvwh
+
+> @ start /app
+> node index.js
+
+Listening
+{ Error: connect ECONNREFUSED 127.0.0.1:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1161:14)
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 5432 }
+
+```
+
+Sweet, all running. At this point the connection error is expected as no connection information to redis/postgres has been provided, and redis/postgres has been setup.
+
+There is an error in the course dialogue at this point, lesson 230 ~4:20. `5432` is postgres default port, why would a redis library even try that port.
+
+This is proved by looking at the worker logs (which only connects to redis)
+
+```
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl logs pod/worker-deployment-666c96ffc5-dtqmd
+
+> @ start /app
+> node index.js
+
+# note: no output
+```
+
+**Lesson 234** -- redis and postgres setup
+
+After running `kubectl apply -f .` -- I have:
+
+```
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl get all
+NAME                                       READY   STATUS             RESTARTS   AGE
+pod/client-deployment-7cb6c958f7-8xdsf     1/1     Running            0          38h
+pod/client-deployment-7cb6c958f7-vcszh     1/1     Running            0          38h
+pod/client-deployment-7cb6c958f7-rx958     1/1     Running            0          38h
+pod/server-deployment-9bff8dfb-rhvjw       1/1     Running            28         29h
+pod/server-deployment-9bff8dfb-fqvwh       1/1     Running            28         29h
+pod/server-deployment-9bff8dfb-bxpwc       1/1     Running            28         29h
+pod/worker-deployment-666c96ffc5-dtqmd     1/1     Running            28         29h
+pod/redis-deployment-58c4799ccc-4fgmp      1/1     Running            0          7m11s
+pod/postgres-deployment-6796b9c68d-tfgh5   0/1     CrashLoopBackOff   1          20s
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP    38h
+service/client-cluster-ip-service     ClusterIP   10.152.183.60    <none>        3000/TCP   38h
+service/server-cluster-ip-service     ClusterIP   10.152.183.138   <none>        5000/TCP   29h
+service/redis-cluster-ip-service      ClusterIP   10.152.183.48    <none>        6379/TCP   7m12s
+service/postgres-cluster-ip-service   ClusterIP   10.152.183.240   <none>        5432/TCP   51s
+
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/client-deployment     3/3     3            3           38h
+deployment.apps/server-deployment     3/3     3            3           29h
+deployment.apps/worker-deployment     1/1     1            1           29h
+deployment.apps/redis-deployment      1/1     1            1           7m12s
+deployment.apps/postgres-deployment   0/1     1            0           20s
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/client-deployment-7cb6c958f7     3         3         3       38h
+replicaset.apps/server-deployment-9bff8dfb       3         3         3       29h
+replicaset.apps/worker-deployment-666c96ffc5     1         1         1       29h
+replicaset.apps/redis-deployment-58c4799ccc      1         1         1       7m12s
+replicaset.apps/postgres-deployment-6796b9c68d   1         1         0       20s
+
+
+ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ kubectl logs pod/postgres-deployment-6796b9c68d-tfgh5
+Error: Database is uninitialized and superuser password is not specified.
+       You must specify POSTGRES_PASSWORD to a non-empty value for the
+       superuser. For example, "-e POSTGRES_PASSWORD=password" on "docker run".
+
+       You may also use "POSTGRES_HOST_AUTH_METHOD=trust" to allow all
+       connections without a password. This is *not* recommended.
+
+       See PostgreSQL documentation about "trust":
+       https://www.postgresql.org/docs/current/auth-trust.html
+```
+
+Note `CrashLoopBackOff` and the logs, postgres latest needs a `POSTGRES_PASSWORD` env var now.
