@@ -509,3 +509,293 @@ Need to enable storage in microk8s. Still no results from `kubectl get pv` thoug
 ---
 
 **Lesson 246** -- secrets management
+
+`PGPASSWORD` needs to be stored using secrets management, not checked into source control. So for this, we need to run an imperative command.
+
+The command is: `kubectk create secret <generic|registry|tls> <secret-name> --from-literal <key>=<value>`
+
+```
+$ kubectl create secret generic pgpassword --from-literal PGPASSWORD=<postgrespassword>
+secret/pgpassword created
+
+$ kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-57lqv   kubernetes.io/service-account-token   3      2d9h
+pgpassword            Opaque                                1      13s
+```
+
+Note: integers need to be quoted when loading in as env vars.
+
+After fixing indentations etc, I ran `kubectl apply -f .` no errors, but the result was;
+
+```
+$ kubectl get all
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/client-deployment-7cb6c958f7-v672h     1/1     Running   0          4m15s
+pod/client-deployment-7cb6c958f7-gc5lj     1/1     Running   0          4m15s
+pod/client-deployment-7cb6c958f7-2wrt6     1/1     Running   0          4m15s
+pod/redis-deployment-58c4799ccc-2f8rk      1/1     Running   0          4m14s
+pod/server-deployment-5567f99966-66ggx     1/1     Running   0          4m14s
+pod/server-deployment-5567f99966-9cfjx     1/1     Running   0          4m14s
+pod/worker-deployment-7c94ff9b64-lg2zx     1/1     Running   0          4m14s
+pod/server-deployment-5567f99966-blxk7     1/1     Running   0          4m14s
+pod/postgres-deployment-5b7fdb4969-tljsd   0/1     Pending   0          4m15s
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP    2d9h
+service/client-cluster-ip-service     ClusterIP   10.152.183.48    <none>        3000/TCP   4m15s
+service/postgres-cluster-ip-service   ClusterIP   10.152.183.86    <none>        5432/TCP   4m15s
+service/redis-cluster-ip-service      ClusterIP   10.152.183.149   <none>        6379/TCP   4m15s
+service/server-cluster-ip-service     ClusterIP   10.152.183.162   <none>        5000/TCP   4m14s
+
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/postgres-deployment   0/1     1            0           4m15s
+deployment.apps/client-deployment     3/3     3            3           4m15s
+deployment.apps/redis-deployment      1/1     1            1           4m14s
+deployment.apps/worker-deployment     1/1     1            1           4m14s
+deployment.apps/server-deployment     3/3     3            3           4m14s
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/postgres-deployment-5b7fdb4969   1         1         0       4m15s
+replicaset.apps/client-deployment-7cb6c958f7     3         3         3       4m15s
+replicaset.apps/redis-deployment-58c4799ccc      1         1         1       4m14s
+replicaset.apps/worker-deployment-7c94ff9b64     1         1         1       4m14s
+replicaset.apps/server-deployment-5567f99966     3         3         3       4m14s
+```
+
+Note that the postgres pod is listed as `Pending`. With the earlier issues with the persistent volume claims, not entirely unexpected. Going to debug this now.
+
+Couldn't find a good way to solve this; so solved it a bad way. I uninstalled the snap, and reinstalled.
+
+```
+$ sudo snap remove microk8s --purge
+$ sudo snap install microk8s --classic
+$ microk8s enable dns dashboard storage
+$ kubectl create secret generic pgpassword --from-literal PGPASSWORD=<postgrespassword>
+$ kubectl apply -f .
+```
+
+Now working;
+
+```
+$ kubectl get all
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/client-deployment-7cb6c958f7-5hfkz     1/1     Running   0          2m26s
+pod/client-deployment-7cb6c958f7-zcjrb     1/1     Running   0          2m26s
+pod/client-deployment-7cb6c958f7-h92lk     1/1     Running   0          2m26s
+pod/worker-deployment-7c94ff9b64-4dqnf     1/1     Running   0          2m26s
+pod/server-deployment-5567f99966-f8xfw     1/1     Running   0          2m26s
+pod/postgres-deployment-5b7fdb4969-npdvv   1/1     Running   0          2m26s
+pod/redis-deployment-58c4799ccc-m2x2t      1/1     Running   0          2m26s
+pod/server-deployment-5567f99966-xjcs4     1/1     Running   0          2m26s
+pod/server-deployment-5567f99966-lj568     1/1     Running   0          2m26s
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP    7m51s
+service/client-cluster-ip-service     ClusterIP   10.152.183.77    <none>        3000/TCP   2m26s
+service/postgres-cluster-ip-service   ClusterIP   10.152.183.241   <none>        5432/TCP   2m26s
+service/redis-cluster-ip-service      ClusterIP   10.152.183.250   <none>        6379/TCP   2m26s
+service/server-cluster-ip-service     ClusterIP   10.152.183.246   <none>        5000/TCP   2m26s
+
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/client-deployment     3/3     3            3           2m26s
+deployment.apps/worker-deployment     1/1     1            1           2m26s
+deployment.apps/postgres-deployment   1/1     1            1           2m26s
+deployment.apps/redis-deployment      1/1     1            1           2m26s
+deployment.apps/server-deployment     3/3     3            3           2m26s
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/client-deployment-7cb6c958f7     3         3         3       2m26s
+replicaset.apps/worker-deployment-7c94ff9b64     1         1         1       2m26s
+replicaset.apps/postgres-deployment-5b7fdb4969   1         1         1       2m26s
+replicaset.apps/redis-deployment-58c4799ccc      1         1         1       2m26s
+replicaset.apps/server-deployment-5567f99966     3         3         3       2m26s
+```
+
+Note that I tried `kubectl apply` before secrets were created and recieved this error:
+
+```
+$ kubectl get all
+NAME                                       READY   STATUS                       RESTARTS   AGE
+pod/postgres-deployment-5b7fdb4969-6ht4m   0/1     ContainerCreating            0          41s
+pod/client-deployment-7cb6c958f7-fhdjx     1/1     Running                      0          42s
+pod/client-deployment-7cb6c958f7-2b4p2     1/1     Running                      0          42s
+pod/client-deployment-7cb6c958f7-r87lf     1/1     Running                      0          42s
+pod/redis-deployment-58c4799ccc-hgj7t      1/1     Running                      0          41s
+pod/worker-deployment-7c94ff9b64-67jkr     1/1     Running                      0          41s
+pod/server-deployment-5567f99966-m98lt     0/1     CreateContainerConfigError   0          41s
+pod/server-deployment-5567f99966-mkd9v     0/1     CreateContainerConfigError   0          41s
+pod/server-deployment-5567f99966-f7dc2     0/1     CreateContainerConfigError   0          41s
+```
+
+Which makes sense as the config is looking for secrets that don't exist. Ran `kubectl delete -f .` -- created the secret and reapplied. All worked at this point!
+
+---
+
+**Lesson 251 - 255** -- Ingress
+
+Need to enable this feature in microk8s, a `microk8s status` shows it's available but not running.
+
+```
+$ microk8s enable ingress
+Enabling Ingress
+ingressclass.networking.k8s.io/public created
+namespace/ingress created
+serviceaccount/nginx-ingress-microk8s-serviceaccount created
+clusterrole.rbac.authorization.k8s.io/nginx-ingress-microk8s-clusterrole created
+role.rbac.authorization.k8s.io/nginx-ingress-microk8s-role created
+clusterrolebinding.rbac.authorization.k8s.io/nginx-ingress-microk8s created
+rolebinding.rbac.authorization.k8s.io/nginx-ingress-microk8s created
+configmap/nginx-load-balancer-microk8s-conf created
+configmap/nginx-ingress-tcp-microk8s-conf created
+configmap/nginx-ingress-udp-microk8s-conf created
+daemonset.apps/nginx-ingress-microk8s-controller created
+Ingress is enabled
+
+$ microk8s status
+microk8s is running
+high-availability: no
+  datastore master nodes: 127.0.0.1:19001
+  datastore standby nodes: none
+addons:
+  enabled:
+    dashboard            # The Kubernetes dashboard
+    dns                  # CoreDNS
+    ha-cluster           # Configure high availability on the current node
+    ingress              # Ingress controller for external access
+    metrics-server       # K8s Metrics Server for API access to service metrics
+    storage              # Storage class; allocates storage from host directory
+```
+
+Note on load balancers, not so useful as only load balance across a deployment, better to use ingress on each pod and a cloud load balancer across those. In this example we would balance on both the client and server deployments.
+
+On our ingress we're using a community project called nginx ingress, not the nginx companies version. See https://github.com/kubernetes/ingress-nginx for docs.
+
+Further reading: https://www.joyfulbikeshedding.com/blog/2018-03-26-studying-the-kubernetes-ingress-system.html
+
+Note: https://kubernetes.github.io/ingress-nginx/deploy/#provider-specific-steps -- might need to read there to get running on microk8s.
+
+Turns out that this command `microk8s enable ingress` actually is using and enabling the `nginx-ingress` project, see: https://microk8s.io/docs/addon-ingress. Should be able to ignore all the installation steps and just use the configurations from the course. Maybe.
+
+---
+
+**Lesson 240** -- updates
+
+The config file in lesson 241 needs to be updated as follows;
+
+```
+    apiVersion: networking.k8s.io/v1beta1
+    # UPDATE THE API
+    kind: Ingress
+    metadata:
+      name: ingress-service
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/use-regex: 'true'
+        # ADD THIS LINE ABOVE
+        nginx.ingress.kubernetes.io/rewrite-target: /$1
+        # UPDATE THIS LINE ABOVE
+    spec:
+      rules:
+        - http:
+            paths:
+              - path: /?(.*)
+              # UPDATE THIS LINE ABOVE
+                backend:
+                  serviceName: client-cluster-ip-service
+                  servicePort: 3000
+              - path: /api/?(.*)
+              # UPDATE THIS LINE ABOVE
+                backend:
+                  serviceName: server-cluster-ip-service
+                  servicePort: 5000
+```
+
+And didn't work.
+
+```
+error: error validating "ingress-service.yaml": error validating data: ValidationError(Ingress.spec.rules[0]): unknown field "paths" in io.k8s.api.networking.v1beta1.IngressRule; if you choose to ignore these errors, turn validation off with --validate=false
+```
+
+Time to debug.
+
+1. my file had paths at the same level as http -- fixed it.
+
+2. `networking.k8s.io/v1beta1` deprecated in `v1.19` -- removed in `v1.22` -- time to update to `networking.k8s.io/v1`
+
+3. now `serviceName` and `servicePort` are no longer valid -- guessing `name` and `port` -- close, see: https://stackoverflow.com/questions/64125048/get-error-unknown-field-servicename-in-io-k8s-api-networking-v1-ingressbacken
+
+I configured a k8s.course.local in my `/etc/hosts` to hit `127.0.0.1`
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: k8s.course.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+```
+
+```
+$ kubectl apply -f ingress-service.yaml
+ingress.networking.k8s.io/ingress-service configured
+```
+
+Results: a 404. Time for more debugging.
+
+```
+$ kubectl get ingress
+NAME              CLASS    HOSTS              ADDRESS   PORTS   AGE
+ingress-service   <none>   k8s.course.local             80      22m
+
+$ ping k8s.course.local
+PING k8s.course.local (127.0.1.1) 56(84) bytes of data.
+64 bytes from stinky (127.0.1.1): icmp_seq=1 ttl=64 time=0.147 ms
+64 bytes from stinky (127.0.1.1): icmp_seq=2 ttl=64 time=0.043 ms
+^C
+--- k8s.course.local ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1022ms
+rtt min/avg/max/mdev = 0.043/0.095/0.147/0.052 ms
+
+$ curl -ik https://k8s.course.local/
+HTTP/2 404
+server: nginx/1.19.2
+date: Sun, 10 Jan 2021 20:07:17 GMT
+content-type: text/html
+content-length: 153
+strict-transport-security: max-age=15724800; includeSubDomains
+
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.19.2</center>
+</body>
+</html>
+```
+
+Which honestly looks like it's working.
+
+![Ingress Fake SSL Cert](img/ingress-fake-cert.png)
+
+So the ingress service is working! The routing isn't.
