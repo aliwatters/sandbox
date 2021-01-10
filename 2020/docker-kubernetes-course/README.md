@@ -4,6 +4,8 @@ https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/
 
 Good instructor on this course, Stephen Girder, hope to fill in a few gaps on docker and get fully up to speed on kubernetes.
 
+---
+
 ## Section 1-3 - basics
 
 Lots of docker info, good diagrams, mostly things I already know. One nice thing to learn is that docker on Mac/Win both use a VM and overlay the docker server on top of that.
@@ -11,6 +13,8 @@ Lots of docker info, good diagrams, mostly things I already know. One nice thing
 `docker build -t aliwatters/redis:latest .` -- tags images that I build, version is technically the "tag" everything else is the project.
 
 Creating images from running containers is via `docker commit -c 'CMD ["redis-server"]' <running-image-id>` -- much better to use Dockerfiles, but interesting.
+
+---
 
 ## Section 4 - a simple project
 
@@ -25,9 +29,13 @@ Visit: http://localhost:5000/
 
 **Debug**: `docker run -it aliwatters/simpleweb sh`
 
+---
+
 ## Section 5 - docker-compose
 
 Server counting app, see `visits` directory. Introduce `docker-compose` -- restarts is something I'd not gone into before.
+
+---
 
 ## Section 6 - production grade workflow
 
@@ -39,9 +47,13 @@ Yarn is used by default, not npm. Should be able to use interchangebly.
 
 Note; remove `node_modules` before building image. This save 155mb being copied in! (`create-react-app` installs this, only needed in the container which we're setting up for dev)
 
+---
+
 **Lesson 72**:
 
 `docker run -it -p 3000:3000 CONTAINER_ID` -- needs the `-it`
+
+---
 
 **Lesson 75**:
 
@@ -49,9 +61,13 @@ docker volumes, great. `$ docker run -p 3000:3000 -v /app/node_modules -v $PWD:/
 
 Note: the `-v /app/node_modules` -- doesn't exist in the host, but adds a volume for the image.
 
+---
+
 **Lesson 76**:
 
 `docker-compose` version of the commands above.
+
+---
 
 **Lesson 83**:
 
@@ -78,6 +94,8 @@ Watch Usage: Press w to show more.
 ```
 
 Not perfect either, and as the default is watch mode anyway... not sure if it's that useful.
+
+---
 
 **Lesson 90**: Multi-step builds
 
@@ -117,6 +135,8 @@ Do this:
 
 So -- use the step number and leave out the name.
 
+---
+
 ## Section 7 - Deploy to AWS
 
 **Lesson 100+**:
@@ -132,13 +152,19 @@ Ok ran through all the steps in lessons, and https://github.com/aliwatters/docke
 
 ![Travis CI](./img/simple-travis-ci.png)
 
+&nbsp;
+
 ![Running App](./img/simple-running-app.png)
+
+---
 
 ## Section 8 - Multi-container app
 
 Building an over the top fibonacci system. Note: pretty much a JS section, skippable as no docker or kubernetes content. I'm going to do it... might be a completionist.
 
 https://github.com/aliwatters/docker-kubernetes-course-complex
+
+---
 
 ## Section 9 - Dockerizing the services
 
@@ -156,6 +182,8 @@ Note: debugging of the redis connections is really tricky with the `retry_strate
 
 actually outputs the errors.
 
+---
+
 ## Section 10 & 11 - multicontainer hosting on AWS
 
 Via elastic beanstalk and travis. Lots of detail in the [repo](https://github.com/aliwatters/docker-kubernetes-course-complex) and [AWS Cheatsheet](./AWS-cheatsheet.md)
@@ -164,9 +192,15 @@ Note: gotcha on travis, `docker push` doesn't die with an error code if fails au
 
 ![DockerHub](./img/docker-hub-images.png)
 
+&nbsp;
+
 ![TravisCI Log](./img/travis-push-log.png)
 
+&nbsp;
+
 ![AWS ELB](./img/dkcc-elb-running.png)
+
+&nbsp;
 
 ![Running App](./img/dkcc-running-app.png)
 
@@ -206,6 +240,8 @@ Events:            <none>
 The Endpoint (`192.168.86.104:31515`) here also has the app running. So that's three IPs that could be what I'm looking for, `192.168.86.104`, `10.1.134.64` and `172.17.0.1`.
 
 Posted a [feature](https://github.com/ubuntu/microk8s/issues/1836) request on the microk8s github, this seems way too complex for no good reason.
+
+---
 
 ## Section 13 - kubernetes deployments
 
@@ -266,15 +302,21 @@ NAME                                 READY   STATUS    RESTARTS   AGE
 client-deployment-59b7f8c74b-mjrf2   1/1     Running   0          105s
 ```
 
+---
+
 **Lesson 217-219** -- vm docker, client link.
 
 Notes: I'm running microk8s, so no virtual machine. In the course they run `$ eval $(minikube docker-env)` at that point docker-client is linked to the docker server within the minikube VM.
 
 Note: configs I used in section this are in the [dck-simple-k8s directory](./dkc-simple-k8s)
 
+---
+
 ## Section 14 - a multi-container k8s deployment
 
 Note: configs I use in section this are in the [complex-219 directory](./complex-219)
+
+---
 
 **Lesson 229** -- combining k8s config files
 
@@ -295,6 +337,8 @@ kind: Service
 ```
 
 Gut check, I prefer the single file per component approach, with a good naming convention very obvious where the config is.
+
+---
 
 **Lesson 231** -- applying
 
@@ -367,6 +411,8 @@ ali@stinky:~/git/sandbox/2020/docker-kubernetes-course/complex-219/k8s (main)$ k
 # note: no output
 ```
 
+---
+
 **Lesson 234** -- redis and postgres setup
 
 After running `kubectl apply -f .` -- I have:
@@ -419,3 +465,47 @@ Error: Database is uninitialized and superuser password is not specified.
 ```
 
 Note `CrashLoopBackOff` and the logs, postgres latest needs a `POSTGRES_PASSWORD` env var now.
+
+---
+
+**Lesson 236** -- volumes
+
+**Volume** -- kubernetes volumes are at the pod level, so can survive container restarts, but not a pod restart.
+
+**Persistent Volume** -- is outside the pod, so survive pod restarts.
+
+**Persistent Volume Claim**:
+
+- _Statically Provisioned Volume_ - created ahead of time
+- _Dynamically Provisioned Volume_ - created on demand
+
+---
+
+**Lesson 241** -- where are storage volumes created
+
+```
+$ kubectl get storageclass
+No resources found
+```
+
+Interestingly, I don't have anything here. Maybe it will show up when I actually create a PVC.
+
+https://kubernetes.io/docs/concepts/storage/storage-classes/
+
+```
+$ microk8s enable storage
+Enabling default storage class
+[sudo] password:
+deployment.apps/hostpath-provisioner created
+storageclass.storage.k8s.io/microk8s-hostpath created
+serviceaccount/microk8s-hostpath created
+clusterrole.rbac.authorization.k8s.io/microk8s-hostpath created
+clusterrolebinding.rbac.authorization.k8s.io/microk8s-hostpath created
+Storage will be available soon
+```
+
+Need to enable storage in microk8s. Still no results from `kubectl get pv` though.
+
+---
+
+**Lesson 246** -- secrets management
