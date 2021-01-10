@@ -771,8 +771,7 @@ ingress-service   <none>   k8s.course.local             80      22m
 $ ping k8s.course.local
 PING k8s.course.local (127.0.1.1) 56(84) bytes of data.
 64 bytes from stinky (127.0.1.1): icmp_seq=1 ttl=64 time=0.147 ms
-64 bytes from stinky (127.0.1.1): icmp_seq=2 ttl=64 time=0.043 ms
-^C
+# ...
 --- k8s.course.local ping statistics ---
 2 packets transmitted, 2 received, 0% packet loss, time 1022ms
 rtt min/avg/max/mdev = 0.043/0.095/0.147/0.052 ms
