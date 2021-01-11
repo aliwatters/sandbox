@@ -734,20 +734,21 @@ metadata:
   name: ingress-service
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   rules:
     - host: k8s.course.local
       http:
         paths:
-          - path: /
+          - path: /?(.*)
             pathType: Prefix
             backend:
               service:
                 name: client-cluster-ip-service
                 port:
                   number: 3000
-          - path: /api/
+          - path: /api/?(.*)
             pathType: Prefix
             backend:
               service:
@@ -798,3 +799,130 @@ Which honestly looks like it's working.
 ![Ingress Fake SSL Cert](img/ingress-fake-cert.png)
 
 So the ingress service is working! The routing isn't.
+
+1 day later: spent some hours debugging this. Ultimately it was due to the `class`.
+
+```
+kubernetes.io/ingress.class: public
+```
+
+Here are the debugging notes, and the working end file.
+
+```
+$ kubectl get pods -n kube-system
+NAME                                         READY   STATUS    RESTARTS   AGE
+calico-node-gsxkq                            1/1     Running   0          23h
+coredns-86f78bb79c-8kxvh                     1/1     Running   0          23h
+metrics-server-8bbfb4bdb-bvxrg               1/1     Running   0          23h
+dashboard-metrics-scraper-6c4568dc68-t2jfg   1/1     Running   0          23h
+calico-kube-controllers-847c8c99d-659vz      1/1     Running   0          23h
+hostpath-provisioner-5c65fbdb4f-wl8td        1/1     Running   0          23h
+kubernetes-dashboard-7ffd448895-mf4wc        1/1     Running   0          23h
+
+
+$ kubectl get svc -A
+NAMESPACE     NAME                          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+default       kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP                  23h
+kube-system   kube-dns                      ClusterIP   10.152.183.10    <none>        53/UDP,53/TCP,9153/TCP   23h
+kube-system   metrics-server                ClusterIP   10.152.183.221   <none>        443/TCP                  23h
+kube-system   kubernetes-dashboard          ClusterIP   10.152.183.90    <none>        443/TCP                  23h
+kube-system   dashboard-metrics-scraper     ClusterIP   10.152.183.57    <none>        8000/TCP                 23h
+default       client-cluster-ip-service     ClusterIP   10.152.183.163   <none>        3000/TCP                 16m
+default       postgres-cluster-ip-service   ClusterIP   10.152.183.164   <none>        5432/TCP                 16m
+default       redis-cluster-ip-service      ClusterIP   10.152.183.250   <none>        6379/TCP                 16m
+default       server-cluster-ip-service     ClusterIP   10.152.183.165   <none>        5000/TCP                 16m
+
+$ kubectl get ing
+NAME              CLASS    HOSTS              ADDRESS   PORTS   AGE
+ingress-service   <none>   k8s.course.local             80      17m
+
+$ kubectl describe ing
+Name:             ingress-service
+Namespace:        default
+Address:
+Default backend:  client-cluster-ip-service:3000 (10.1.134.109:3000,10.1.134.110:3000,10.1.134.111:3000)
+Rules:
+  Host              Path  Backends
+  ----              ----  --------
+  k8s.course.local
+                    /            client-cluster-ip-service:3000 (10.1.134.109:3000,10.1.134.110:3000,10.1.134.111:3000)
+                    /?(.*)       client-cluster-ip-service:3000 (10.1.134.109:3000,10.1.134.110:3000,10.1.134.111:3000)
+                    /api/?(.*)   server-cluster-ip-service:5000 (10.1.134.112:5000,10.1.134.115:5000,10.1.134.117:5000)
+Annotations:        kubernetes.io/ingress.class: nginx
+                    nginx.ingress.kubernetes.io/rewrite-target: /$1
+                    nginx.ingress.kubernetes.io/use-regex: true
+Events:             <none>
+
+$ kubectl get all
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/client-deployment-7cb6c958f7-qd595     1/1     Running   0          18m
+pod/client-deployment-7cb6c958f7-lbqzs     1/1     Running   0          18m
+pod/client-deployment-7cb6c958f7-zzb78     1/1     Running   0          18m
+pod/server-deployment-5567f99966-w5ptj     1/1     Running   0          18m
+pod/worker-deployment-7c94ff9b64-t5h7z     1/1     Running   0          18m
+pod/postgres-deployment-5b7fdb4969-kn6pr   1/1     Running   0          18m
+pod/server-deployment-5567f99966-xg2c5     1/1     Running   0          18m
+pod/redis-deployment-58c4799ccc-9h5tb      1/1     Running   0          18m
+pod/server-deployment-5567f99966-bbqzv     1/1     Running   0          18m
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP    23h
+service/client-cluster-ip-service     ClusterIP   10.152.183.163   <none>        3000/TCP   18m
+service/postgres-cluster-ip-service   ClusterIP   10.152.183.164   <none>        5432/TCP   18m
+service/redis-cluster-ip-service      ClusterIP   10.152.183.250   <none>        6379/TCP   18m
+service/server-cluster-ip-service     ClusterIP   10.152.183.165   <none>        5000/TCP   18m
+
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/client-deployment     3/3     3            3           18m
+deployment.apps/worker-deployment     1/1     1            1           18m
+deployment.apps/postgres-deployment   1/1     1            1           18m
+deployment.apps/redis-deployment      1/1     1            1           18m
+deployment.apps/server-deployment     3/3     3            3           18m
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/client-deployment-7cb6c958f7     3         3         3       18m
+replicaset.apps/worker-deployment-7c94ff9b64     1         1         1       18m
+replicaset.apps/postgres-deployment-5b7fdb4969   1         1         1       18m
+replicaset.apps/redis-deployment-58c4799ccc      1         1         1       18m
+replicaset.apps/server-deployment-5567f99966     3         3         3       18m
+```
+
+At this point, I was still getting `404` errors. I eventually found this discussion;
+
+https://discuss.kubernetes.io/t/add-on-ingress/11259/12
+
+Adjusted the `nginx` to `public`, applied the new config and all worked as expected.
+
+Final ingress config:
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+    kubernetes.io/ingress.class: public
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  rules:
+    - host: k8s.course.local
+      http:
+        paths:
+          - path: /?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+```
+
+![Working local k8s](img/k8s-working-locally.png)
