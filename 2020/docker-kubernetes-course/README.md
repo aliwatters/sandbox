@@ -926,3 +926,59 @@ spec:
 ```
 
 ![Working local k8s](img/k8s-working-locally.png)
+
+---
+
+**Lesson 264** -- Kubernetes Dashboard
+
+1. Enable with: `microk8s enable dns dashboard`
+2. Get the ip address of the dashboard:
+
+```
+$ kubectl get all --all-namespaces | grep dashboard
+kube-system   pod/dashboard-metrics-scraper-6c4568dc68-t2jfg   1/1     Running   0          47h
+kube-system   pod/kubernetes-dashboard-7ffd448895-mf4wc        1/1     Running   0          47h
+kube-system   service/kubernetes-dashboard          ClusterIP   10.152.183.90    <none>        443/TCP                  47h # <-- THIS ONE!
+kube-system   service/dashboard-metrics-scraper     ClusterIP   10.152.183.57    <none>        8000/TCP                 47h
+kube-system   deployment.apps/dashboard-metrics-scraper   1/1     1            1           47h
+kube-system   deployment.apps/kubernetes-dashboard        1/1     1            1           47h
+kube-system   replicaset.apps/dashboard-metrics-scraper-6c4568dc68   1         1         1       47h
+kube-system   replicaset.apps/kubernetes-dashboard-7ffd448895        1         1         1       47h
+```
+
+So the IP of my dashboard is 10.152.183.90
+
+3. Visit https://10.152.183.90/
+
+4. Obtain a token
+
+```
+$ kubectl -n kube-system get secret | grep dashboard
+kubernetes-dashboard-token-bmc7r                 kubernetes.io/service-account-token   3      47h # <-- THIS ONE!
+kubernetes-dashboard-certs                       Opaque                                0      47h
+kubernetes-dashboard-csrf                        Opaque                                1      47h
+kubernetes-dashboard-key-holder                  Opaque                                2      47h
+
+$ kubectl -n kube-system describe secret kubernetes-dashboard-token-bmc7r # <-- AS ABOVE
+Name:         kubernetes-dashboard-token-bmc7r
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: kubernetes-dashboard
+            kubernetes.io/service-account.uid: cb5cda5a-3612-4368-a028-915798ac330d
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1103 bytes
+namespace:  11 bytes
+token:      eyJhbGciO...<very long token>...5YH6w
+```
+
+5. Copy and paste the token and you're in!
+
+![Running local dashboard](img/running-local-dashboard.png)
+
+---
+
+## Section 16 -- kubernetes in production
