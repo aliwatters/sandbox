@@ -982,3 +982,137 @@ token:      eyJhbGciO...<very long token>...5YH6w
 ---
 
 ## Section 16 -- kubernetes in production
+
+Note: uses google cloud, requires payment: expected to be about $2 at most (assuming cleaned up quickly and properly)
+
+I have a personal aim to deploy to Digital Ocean after this.
+
+**Why not AWS?**
+
+- recent k8s product -- 2018
+- interface inferior
+- more complex documentation
+
+Sounds about right for AWS!
+
+1. Setup repo; https://github.com/aliwatters/dkc-mutli-k8s
+2. add to travis
+
+- login to travis-ci.com
+- profile --> settings --> resync github --> add repos manually
+- create google cloud project -- console.cloud.google.com
+  - created a 3 node cluster, should be about a $2 a day max
+
+Note: https://www.udemy.com/docker-and-kubernetes-the-complete-guide/learn/v4/t/lecture/11684242?start=0 -- cleanup details
+
+![Google Kubernetes](img/google-kubernetes.png)
+
+Next up: build a travis-ci config file `.travis.yml`
+
+Once credentials are downloaded from google cloud, the file needs to be encrypted and loaded into travis via the travis CLI. This is done via ruby.
+
+Options here:
+
+1. install ruby locally
+2. install via a snap; `sudo snap install ruby --classic --channel=2.4/stable`
+3. install a docker image -- chosen method
+
+I can then shell into the docker image, and use as needed. This is the approach the couse uses.
+
+Note: ruby version 2.4 is required, not 2.3 `docker run -it -v $(pwd):/app ruby:2.4 sh` and `gem install travis`. Ran this in the `dkc-multi-k8s` git directory.
+
+More updates: Travis has moved to `.com` now, so commands look like;
+
+- `travis login --github-token YOUR_PERSONAL_TOKEN --com`
+- `travis encrypt-file service-account.json -r USERNAME/REPO --com`
+
+I also have to get a github access token by following the instructions here; https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token with the privileges detailed here; https://docs.travis-ci.com/user/github-oauth-scopes/#repositories-on-httpstravis-cicom-private-and-public
+
+Note: travis wants;
+
+```
+    user:email (read-only)
+    read:org (read-only) -- not granted
+    repo
+```
+
+I did not grant access to the org for github, I do not need access to repos that belong to my employer, just personal ones. I'll look out for spurious errors from this.
+
+Doing that now so all set for the video.
+
+```
+$ docker run -it -v $(pwd):/app ruby:2.4 sh
+
+# gem install travis
+
+# travis login --github-token 6c9...<redacted>..f27 --com
+Successfully logged in as aliwatters!
+```
+
+but ... encryption failed;
+
+```
+# travis encrypt-file service-account.json -r aliwatters/dkc-multi-k8s --com
+repository not known to https://api.travis-ci.com/: aliwatters/dkc-multi-k8s
+```
+
+checking travis ci to see if I have granted access to this correctly.
+
+```
+# travis repos
+not logged in - try running travis login
+```
+
+Well that's crap. Turns out all commands need `--com` on the end, defaults to the `.org` account.
+
+So using that I found the issue: `dkc-mutli-k8s` doh, I have a typo. Continuing with the dumb typo as fixing it will be a pita.
+
+```
+# travis encrypt-file service-account.json -r aliwatters/dkc-multi-k8s --com
+repository not known to https://api.travis-ci.com/: aliwatters/dkc-multi-k8s
+
+# travis encrypt-file service-account.json -r aliwatters/dkc-mutli-k8s --com
+encrypting service-account.json for aliwatters/dkc-mutli-k8s
+storing result as service-account.json.enc
+storing secure env variables for decryption
+
+Please add the following to your build script (before_install stage in your .travis.yml, for instance):
+
+    openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
+
+Pro Tip: You can add it automatically by running with --add.
+
+Make sure to add service-account.json.enc to the git repository.
+Make sure not to add service-account.json to the git repository.
+Commit all changes to your .travis.yml.
+```
+
+Continuing with the videos now.
+
+Complete steps are:
+
+```
+$ docker run -it -v $(pwd):/app ruby:2.4 sh
+
+# gem install travis
+
+# travis login --github-token 6c9...<redacted>..f27 --com
+Successfully logged in as aliwatters!
+
+# travis encrypt-file service-account.json -r aliwatters/dkc-mutli-k8s --com
+encrypting service-account.json for aliwatters/dkc-mutli-k8s
+storing result as service-account.json.enc
+storing secure env variables for decryption
+
+Please add the following to your build script (before_install stage in your .travis.yml, for instance):
+
+    openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
+
+Pro Tip: You can add it automatically by running with --add.
+
+Make sure to add service-account.json.enc to the git repository.
+Make sure not to add service-account.json to the git repository.
+Commit all changes to your .travis.yml.
+```
+
+Then add the line to `.travis.yml` and delete the unencrypted credentials.
