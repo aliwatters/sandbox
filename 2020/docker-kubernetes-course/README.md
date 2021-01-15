@@ -1116,3 +1116,140 @@ Commit all changes to your .travis.yml.
 ```
 
 Then add the line to `.travis.yml` and delete the unencrypted credentials.
+
+Note: seems like project id is simplified now, mine is shown as `dkc-multi-k8s` in google cloud.
+
+**Lesson 286** -- other build steps.
+
+Update:
+
+```
+    script:
+      - docker run -e CI=true USERNAME/react-test npm test
+```
+
+Next: tagging images with sha in a deploy script.
+
+Next: setting up the secret in google cloud.
+
+```
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ gcloud config set project dkc-multi-k8s
+
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ gcloud config set compute/zone us-central1-c
+Updated property [compute/zone].
+
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ gcloud container clusters get-credentials dkc-multi-cluster
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for dkc-multi-cluster.
+
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ kubectl create secret generic pgpasswd --from-literal PGPASSWORD=<password>
+```
+
+![Google cloud secret](img/google-cloud-secret.png)
+
+Next: updating helm to latest and easier version
+
+```
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ chmod 700 get_helm.sh
+
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ ./get_helm.sh
+Helm v3.5.0 is available. Changing from version v3.2.1.
+Downloading https://get.helm.sh/helm-v3.5.0-linux-amd64.tar.gz
+Verifying checksum... Done.
+Preparing to install helm into /usr/local/bin
+helm installed into /usr/local/bin/helm
+```
+
+I do not have to run the commands in "Helm Setup (295), Kubernetes Security with RBAC (296), Assigning Tiller a Service Account (297), and Ingress-Nginx with Helm (298)"
+
+Instead run:
+
+```
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm install my-release ingress-nginx/ingress-nginx
+```
+
+To add the ingress. Docs: https://kubernetes.github.io/ingress-nginx/deploy/#using-helm
+
+```
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ helm install my-release ingress-nginx/ingress-nginx
+NAME: my-release
+LAST DEPLOYED: Fri Jan 15 14:33:43 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the LoadBalancer IP to be available.
+You can watch the status by running 'kubectl --namespace default get services -o wide -w my-release-ingress-nginx-controller'
+An example Ingress that makes use of the controller:
+  apiVersion: networking.k8s.io/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+        - hosts:
+            - www.example.com
+          secretName: example-tls
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+```
+
+Note: here the version is `v1beta` -- I'm going to switch my ingress config back to that version of the file (moved to v1 locally as it was available)
+
+Quick notes on RBAC (Role Based Access Control) on Google Cloud. It's on by default!
+
+**Types of Account**
+
+- User Accounts (people via consoles)
+- Service Accounts (systems or pods)
+
+**Role Bindings**
+
+- ClusterRoleBinding (everything on a cluster)
+- RoleBinding (only within a namespace)
+
+(Tiller no longer used would require a ClusterRoleBinding or RoleBinding for this project, Helm's new version has eliminated that somehow)
+
+A combo of
+
+`kubectl create serviceaccount --namespace kube-system <account-name>` - create a service account for the entire system (kubesystem)
+
+`kubectl create clusterrolebinding <name>-cluster-rule --clusterrole=cluster-admin --serviceaccount=<namespace>:<account-name>` - give the role "cluster-admin" to the account
+
+allow admin of these accounts and roles.
+
+---
+
+**Lesson 299** -- what was setup.
+
+![Google Kubernetes Services with Ingress](img/google-cloud-services-with-ingress.png)
+
+---
+
+![Google Kubernetes Config with Ingress](img/google-cloud-config-with-ingress.png)
+
+---
+
+![Google Kubernetes Backend 404](img/google-cloud-ingress-404.png)
+
+---
+
+![Google Kubernetes Load Balancer](img/google-cloud-load-balancer.png)
+
+---
+
+**Lesson 300** -- lets deploy!
