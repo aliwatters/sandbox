@@ -318,3 +318,9 @@ Ran through quick PR flow for just seeing it: https://github.com/aliwatters/dkc-
 Last up: https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/learn/lecture/11684242 -- clean up of google cloud.
 
 I went through this a little slower than usual, hectic time at work, so went through $5 costs.
+
+![Google Cloud Project Cleanup](img/google-cloud-project-cleanup.png)
+
+Done.
+
+Next up skaffold: [Section 19 -- Skaffold](section-19.md)
