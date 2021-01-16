@@ -1252,4 +1252,53 @@ allow admin of these accounts and roles.
 
 ---
 
+![Google Kubernetes terminal so much spinner](img/google-cloud-terminal-spinner.png)
+
+---
+
+```
+ali_watters@cloudshell:~ (dkc-multi-k8s)$ kubectl get all
+NAME                                                      READY   STATUS    RESTARTS   AGE
+pod/my-release-ingress-nginx-controller-fd695f857-n6s4k   1/1     Running   0          90m
+
+NAME                                                    TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
+service/kubernetes                                      ClusterIP      10.80.0.1      <none>          443/TCP                      2d
+service/my-release-ingress-nginx-controller             LoadBalancer   10.80.15.142   35.193.110.15   80:32718/TCP,443:32423/TCP   91m
+service/my-release-ingress-nginx-controller-admission   ClusterIP      10.80.1.70     <none>          443/TCP                      91m
+
+NAME                                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-release-ingress-nginx-controller   1/1     1            1           91m
+
+NAME                                                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/my-release-ingress-nginx-controller-fd695f857   1         1         1       91m
+```
+
+---
+
 **Lesson 300** -- lets deploy!
+
+Worked first time!!!
+
+Actually it didng't. Had to debug the following:
+
+1. test image was created as `text-react` (doh)
+2. had client as the component for worker deployment
+3. set up my secret in gke as `pgpasswd` my k8s config had `pgpassword` -- switched to `pgpasswd` as the faster option.
+
+![Google Cloud Secrets Error](img/google-cloud-pgpasswd.png)
+
+Fixing that last issue and it worked.
+
+![Google Cloud Working](img/google-cloud-working.png)
+
+---
+
+![Google Cloud Secrets Error](img/google-cloud-app-working.png)
+
+---
+
+![Google Cloud Ingress Working](img/google-cloud-ingress-working.png)
+
+## Section 18 -- HTTPS in K8S
+
+[Section 18 Continued HERE](section-18.md)
