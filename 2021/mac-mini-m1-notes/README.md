@@ -37,6 +37,23 @@ So far, login to my apple account and do the usual.
 
 ![docker on apple m1](img/docker-on-apple-m1.png)
 
+
+Notes on git: run
+
+```
+ali@titan % git version
+git version 2.24.3 (Apple Git-128)
+ali@titan % git config --global user.name "Ali Watters"
+ali@titan % git config --global user.email "ali.watters@<someprovider>.com"
+ali@titan % git config --global init.defaultBranch main
+
+ali@titan ~ % git config --list
+credential.helper=osxkeychain
+user.name=Ali Watters
+user.email=ali.watters@<someprovider>.com
+init.defaultbranch=main
+```
+
 ## Installing some extra stuff that is kind of interesting
 
 ### Drobo -- an aside
