@@ -41,6 +41,4 @@ FATA[0002] exiting dev mode because first run failed: build failed: building [al
 
 Lots to debug there, but it's a holiday today (MLK) and I'm doing family stuff, so going to stop for now.
 
-## Creating a new snap.
-
-https://ubuntu.com/tutorials/create-your-first-snap#2-getting-started
+Note: here, I'm going off on a tanget trying to get a new version of this snap built. [Building snaps side quest](../2021/snapcraft/README.md)
