@@ -181,7 +181,249 @@ ali@stinky:~/mysnaps/hello$ which hello
 
 Working!
 
+Done. No.
+
+Next up https://ubuntu.com/tutorials/create-your-first-snap#5-a-snap-is-made-of-parts
+
+This is interesting;
+
+> This time the command name is different from the snap name. By default, all commands are exposed to the user as <snap-name>.<command-name>. This binary will thus be hello.bash. That way, we will avoid a clash with /bin/bash (system binaries trump binaries shipped by snaps) or any other snaps shipping a bash command. However, as you may remember, the first binary is named hello. This is due to the simplification when equals . Instead of hello.hello, we have the command condensed to hello.
+
+Which explains the `microk8s.<commands>` seen there.
+
+```
+ali@stinky:~/mysnaps/hello$ snapcraft
+# ... build output ...
+
+ali@stinky:~/mysnaps/hello$ sudo snap install --devmode hello_2.10_amd64.snap
+hello 2.10 installed
+
+ali@stinky:~/mysnaps/hello$ hello
+Hello, world!
+
+ali@stinky:~/mysnaps/hello$ hello.bash
+
+bash-4.3$ env
+SSH_AGENT_PID=20505
+GPG_AGENT_INFO=/run/user/1000/gnupg/S.gpg-agent:0:1
+# ...
+```
+
+Note: `env` in that shell had access to all my environment vars which included some _sensitive keys!_
+
+These however are the interesting vars;
+
+```
+SNAP_ARCH=amd64
+SNAP_COMMON=/var/snap/hello/common
+SNAP_CONTEXT=hKE72Fn1hNqTv5thzjj-qe3YvoAajt100w7ALa0e_cb_gM-G4O37
+SNAP_COOKIE=hKE72Fn1hNqTv5thzjj-qe3YvoAajt100w7ALa0e_cb_gM-G4O37
+SNAP_DATA=/var/snap/hello/x3
+SNAP_INSTANCE_KEY=
+SNAP_INSTANCE_NAME=hello
+SNAP_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void
+SNAP_NAME=hello
+SNAP_REAL_HOME=/home/ali
+SNAP_REEXEC=
+SNAP_REVISION=x3
+SNAP=/snap/hello/x3
+SNAP_USER_COMMON=/home/ali/snap/hello/common
+SNAP_USER_DATA=/home/ali/snap/hello/x3
+SNAP_VERSION=2.10
+```
+
+Now; removing the dev tags and modes from our config, 'cause it's all tested and working and other folks want to use it.
+
+`confinement: strict` -- change from `devmode` in the `snapcraft.yml`
+
+Build and install.
+
+```
+$ sudo snap install hello_2.10_amd64.snap
+error: cannot find signatures with metadata for snap "hello_2.10_amd64.snap"
+```
+
+Not in the appstore so has no signatures -- seems fair enough!
+
+`--dangerous` gets around that.
+
+Next up, publishing my snap. Already have an `aliwatters` ubuntu account, signed in.
+
+```
+ali@stinky:~/mysnaps/hello$ snapcraft login
+Enter your Ubuntu One e-mail address and password.
+If you do not have an Ubuntu One account, you can create one at https://snapcraft.io/account
+Email: ali.watters@example.com
+Password:
+
+We strongly recommend enabling multi-factor authentication: https://help.ubuntu.com/community/SSO/FAQs/2FA
+Do you agree to the developer terms and conditions. (https://dashboard.snapcraft.io/dev/agreements/new/)?: y
+
+Login successful.
+```
+
+Registering a snap.
+
+```
+ali@stinky:~/mysnaps/hello$ snapcraft register aliwatters-hello
+
+We always want to ensure that users get the software they expect
+for a particular name.
+
+If needed, we will rename snaps to ensure that a particular name
+reflects the software most widely expected by our community.
+
+For example, most people would expect 'thunderbird' to be published by
+Mozilla. They would also expect to be able to get other snaps of
+Thunderbird as '$username-thunderbird'.
+
+Would you say that MOST users will expect 'aliwatters-hello' to come from
+you, and be the software you intend to publish there? [y/N]: y
+Registering aliwatters-hello.
+Congrats! You are now the publisher of 'aliwatters-hello'.
+```
+
+Seems like squatters could cause hassle here! Hope canonical tidy up. Interestingly the tutorial suggests `<snapname>-<username>` where as `snapcraft` looks to prefer `<username>-<snapname>` (I went with that as a hunch).
+
+Update `snapcraft.yml`
+
+```
+name: aliwatters-hello
+grade: stable
+```
+
+Build and publish... should be;
+
+```
+$ snapcraft
+# lots and lots of build info
+
+$ sudo snap remove hello
+# remove dev version
+
+$ snapcraft push aliwatters-hello_2.10_amd64.snap --release=candidate
+```
+
+But -- it crashed at this point:
+
+```
+$ snapcraft
+
+# ... build output
+exec failed: ssh connection failed: 'Connection refused'
+Run the same command again with --debug to shell into the environment if you wish to introspect this failure.
+An error occurred when trying to execute 'sudo -H -i env SNAPCRAFT_BUILD_ENVIRONMENT=managed-host HOME=/root SNAPCRAFT_HAS_TTY=True snapcraft snap' with 'multipass': returned exit code 255.
+
+ali@stinky:~/mysnaps/hello$ snapcraft
+Launching a VM.
+snap "snapd" has no updates available
+[Errno 5] Input/output error: '/root/project'
+We would appreciate it if you anonymously reported this issue.
+No other data than the traceback and the version of snapcraft in use will be sent.
+Would you like to send this error data? (Yes/No/Always/View) [no]: yes
+Thank you, sent.
+Run the same command again with --debug to shell into the environment if you wish to introspect this failure.
+
+ali@stinky:~/mysnaps/hello$ snapcraft --debug
+Launching a VM.
+snap "snapd" has no updates available
+Could not find snap/snapcraft.yaml. Are you sure you are in the right directory?
+To start a new project, use `snapcraft init`
+snapcraft-hello #
+```
+
+Not sure what to do to debug here.
+
+Well -- I tried a few times and seemed to create a package at some point.
+
+```
+ali@stinky:~/mysnaps/hello$ ls -ltra
+total 5968
+drwxrwxr-x 3 ali ali    4096 Jan 20 06:39 ..
+drwxrwxr-x 2 ali ali    4096 Jan 20 06:42 snap
+-rw-r--r-- 1 ali ali 3047424 Jan 21 07:54 hello_2.10_amd64.snap
+drwxrwxr-x 3 ali ali    4096 Jan 21 08:06 .
+-rw-r--r-- 1 ali ali 3047424 Jan 21 08:07 aliwatters-hello_2.10_amd64.snap
+```
+
+Let's publish.
+
+```
+ali@stinky:~/mysnaps/hello$ snapcraft push aliwatters-hello_2.10_amd64.snap --release=candidate
+DEPRECATED: The 'push' set of commands have been replaced with 'upload'.
+See http://snapcraft.io/docs/deprecation-notices/dn11 for more information.
+Preparing to upload 'aliwatters-hello_2.10_amd64.snap'.
+After uploading, the resulting snap revision will be released to 'candidate' when it passes the Snap Store review.
+Install the review-tools from the Snap Store for enhanced checks before uploading this snap.
+Pushing 'aliwatters-hello_2.10_amd64.snap' [======================================================] 100%
+Processing...|
+released
+Revision 1 of 'aliwatters-hello' created.
+Track    Arch    Channel    Version    Revision
+latest   amd64   stable     -          -
+                 candidate  2.10       1
+                 beta       ↑          ↑
+                 edge       ↑          ↑
+```
+
 Done.
+
+```
+ali@stinky:~/mysnaps/hello$ sudo snap install --candidate aliwatters-hello
+aliwatters-hello (candidate) 2.10 from Ali Watters (aliwatters) installed
+
+ali@stinky:~/mysnaps/hello$ hello
+bash: /snap/bin/hello: No such file or directory
+```
+
+Found it -- due to the `hello.hello` being condenced to `hello` -- `aliwatters-hello.hello` is the command.
+
+```
+ali@stinky:~/mysnaps/hello$ aliwatters-hello.hello
+Hello, world!
+```
+
+Trying to name `hello` see if that fixes it.
+
+So -- that gives;
+
+```
+ali@stinky:~/mysnaps/hello$ snapcraft
+Launching a VM.
+snap "snapd" has no updates available
+Could not find snap/snapcraft.yaml. Are you sure you are in the right directory?
+To start a new project, use `snapcraft init`
+Run the same command again with --debug to shell into the environment if you wish to introspect this failure.
+ali@stinky:~/mysnaps/hello$ ls snap/snapcraft.yaml -l
+-rw-rw-r-- 1 ali ali 432 Jan 21 08:22 snap/snapcraft.yaml
+
+ali@stinky:~/mysnaps/hello$ cat snap/snapcraft.yaml
+name: hello
+base: core18
+version: '2.10'
+summary: GNU Hello, the "hello world" snap
+description: |
+  GNU hello prints a friendly greeting.
+
+grade: stable
+confinement: strict
+
+apps:
+  hello:
+    command: bin/hello
+  bash:
+    command: bash
+
+parts:
+  gnu-hello:
+    source: http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz
+    plugin: autotools
+  gnu-bash:
+    source: http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+    plugin: autotools
+```
+
+[final `snapcraft.yaml`](./final-snapcraft.yaml)
 
 ## Stage 2 - update the skaffold snap to latest.
 
