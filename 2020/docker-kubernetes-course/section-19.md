@@ -41,4 +41,75 @@ FATA[0002] exiting dev mode because first run failed: build failed: building [al
 
 Lots to debug there, but it's a holiday today (MLK) and I'm doing family stuff, so going to stop for now.
 
+1/19
+
 Note: here, I'm going off on a tanget trying to get a new version of this snap built. [Building snaps side quest](../2021/snapcraft/README.md)
+
+Well - that was fun.
+
+1/22
+
+Ended up getting blocked on that due, but understand snaps a lot better, made some contributions etc and posted to the forum asking for more info.
+
+Installed skaffold with
+
+```
+wget https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+sudo mv skaffold-linux-amd64 /usr/local/bin
+sudo chmod +x /usr/local/bin/
+skaffold version
+# v1.17.2 (better than v0.25.0!)
+```
+
+Moving on with the course :)
+
+And immediatly blocked with another error.
+
+Created a github issue: https://github.com/GoogleContainerTools/skaffold/issues/5283 and a stackoverflow: https://stackoverflow.com/questions/65855359/skaffold-and-microk8s-getting-started-x509-certificate-signed-by-unknown
+
+```
+$ skaffold dev --default-repo=aliwatters
+Listing files to watch...
+ - skaffold-example
+Generating tags...
+ - skaffold-example -> aliwatters/skaffold-example:v1.18.0-2-gf0bfcccce
+Checking cache...
+ - skaffold-example: Not found. Building
+Building [skaffold-example]...
+Sending build context to Docker daemon  3.072kB
+Step 1/8 : FROM golang:1.12.9-alpine3.10 as builder
+ ---> e0d646523991
+Step 2/8 : COPY main.go .
+ ---> Using cache
+ ---> fb29e25db0a3
+Step 3/8 : ARG SKAFFOLD_GO_GCFLAGS
+ ---> Using cache
+ ---> aa8dd4cbab42
+Step 4/8 : RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /app main.go
+ ---> Using cache
+ ---> 9a666995c00a
+Step 5/8 : FROM alpine:3.10
+ ---> be4e4bea2c2e
+Step 6/8 : ENV GOTRACEBACK=single
+ ---> Using cache
+ ---> bdb74c01e0b9
+Step 7/8 : CMD ["./app"]
+ ---> Using cache
+ ---> 15c248dd54e9
+Step 8/8 : COPY --from=builder /app .
+ ---> Using cache
+ ---> 73564337b083
+Successfully built 73564337b083
+Successfully tagged aliwatters/skaffold-example:v1.18.0-2-gf0bfcccce
+The push refers to repository [docker.io/aliwatters/skaffold-example]
+37806ae41d23: Preparing
+1b3ee35aacca: Preparing
+37806ae41d23: Pushed
+1b3ee35aacca: Pushed
+v1.18.0-2-gf0bfcccce: digest: sha256:a8defaa979650baea27a437318a3c4cd51c44397d6e2c1910e17d81d0cde43ac size: 739
+Tags used in deployment:
+ - skaffold-example -> aliwatters/skaffold-example:v1.18.0-2-gf0bfcccce@sha256:a8defaa979650baea27a437318a3c4cd51c44397d6e2c1910e17d81d0cde43ac
+Deploy Failed. Could not connect to cluster microk8s due to "https://127.0.0.1:16443/version?timeout=32s": x509: certificate signed by unknown authority (possibly because of "crypto/rsa: verification error" while trying to verify candidate authority certificate "10.152.183.1"). Check your connection for the cluster.
+```
+
+So some kind of self signed cert issue, hopefully there's a flag to just ignore!

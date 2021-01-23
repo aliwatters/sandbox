@@ -428,3 +428,79 @@ parts:
 ## Stage 2 - update the skaffold snap to latest.
 
 How hard can it be?
+
+First make a new directory; `aliwatters-skaffold` - preparing for namespacing.
+
+Then take a niave approach; try to recreate the steps in https://skaffold.dev/docs/install/ within the `snapcraft.yaml`
+
+`snapcraft.yaml`
+
+```
+name: aliwatters-skaffold
+base: core18
+version: '0.1'
+summary: Unofficial snap for skaffold
+description: |
+  The offical snap is out of date, so I am making a version that isn't
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+apps:
+  hello:
+    command: bin/skaffold
+
+parts:
+  gnu-hello:
+    source: https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64
+    plugin: autotools
+```
+
+```
+ali@stinky:~/mysnaps/aliwatters-skaffold$ snapcraft
+Failed to pull source: unable to determine source type of 'https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64'.
+Check that the URL is correct or consider specifying `source-type` for this part. See `snapcraft help sources` for more information.
+```
+
+Errored, this is a ~50mb binary by the looks of it, so digging in with the help command.
+
+```
+$ snapcraft help sources
+
+# ...
+
+  - source-type: git, bzr, hg, svn, tar, deb, rpm, or zip
+
+    In some cases the source string is not enough to identify the version
+    control system or compression algorithm. The source-type key can tell
+    snapcraft exactly how to treat that content.
+
+$ file skaffold-linux-amd64
+skaffold-linux-amd64: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, Go BuildID=28UrLFHg_FRaiYbjOPqz/XEefkc8LfTmXC72UGi1C/XHLskeu9zCBScSp7lY_s/GTRv1JxJTjysewpAfqip, stripped
+```
+
+Should just be able to move the file into the right place in the snap and have it work. I'll try a niave version of this too.
+
+```
+   <part-name>:
+      plugin: copy
+      source: <your source directory>
+      files:
+         <source path 1>: <destination path 1>
+         <source path 2>: <destination path 2>
+```
+
+or somthing like this
+
+```
+parts:
+  test-geekbench4:
+    plugin: dump
+    source: http://cdn.geekbench.com/Geekbench-$SNAPCRAFT_PROJECT_VERSION-Linux.tar.gz
+```
+
+ok -- trying `dump`.
+
+Ended up getting blocked in many ways, so posted here in the snapcraft forum; https://forum.snapcraft.io/t/questions-from-creating-snap-devmode-for-skaffold-but-some-general-ones-included/22322
+
+Where I had to break the links because of dumb new user limitations. A frustrating experience so far; I think I'll send an email to the ubuntu podcast -- ready for season 14.
