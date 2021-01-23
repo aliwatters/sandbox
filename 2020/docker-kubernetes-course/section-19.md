@@ -41,13 +41,13 @@ FATA[0002] exiting dev mode because first run failed: build failed: building [al
 
 Lots to debug there, but it's a holiday today (MLK) and I'm doing family stuff, so going to stop for now.
 
-1/19
+**1/19**
 
 Note: here, I'm going off on a tanget trying to get a new version of this snap built. [Building snaps side quest](../2021/snapcraft/README.md)
 
 Well - that was fun.
 
-1/22
+**1/22**
 
 Ended up getting blocked on that due, but understand snaps a lot better, made some contributions etc and posted to the forum asking for more info.
 
@@ -113,3 +113,106 @@ Deploy Failed. Could not connect to cluster microk8s due to "https://127.0.0.1:1
 ```
 
 So some kind of self signed cert issue, hopefully there's a flag to just ignore!
+
+**1/23**
+
+A little more complex. Skaffold looks at the config in `~/.kube/config` and uses that to understand how things are set up on any given system. I hadn't set that up.
+
+Also -- aliases can cause issues -- so; this is the quick start.
+
+```
+$ sudo snap unalias kubectl
+$ sudo snap install kubectl --classic
+$ microk8s.kubectl config view --raw > $HOME/.kube/config
+$ skaffold dev --default-repo=<your-docker-repository>
+```
+
+My full output is as follows: (note this is on the getting-started example in the skaffold repo; https://github.com/GoogleContainerTools/skaffold/tree/master/examples/getting-started) the issue was answered here; https://github.com/GoogleContainerTools/skaffold/issues/5283
+
+```
+$ sudo snap unalias kubectl
+# just in case
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ sudo snap install kubectl --classic
+kubectl 1.20.2 from Canonical✓ installed
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ which kubectl
+/snap/bin/kubectl
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ microk8s.kubectl config view --raw > $HOME/.kube/config
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ skaffold dev --default-repo=aliwatters
+Listing files to watch...
+ - skaffold-example
+Generating tags...
+ - skaffold-example -> aliwatters/skaffold-example:v1.18.0-2-gf0bfcccce
+Checking cache...
+ - skaffold-example: Found Remotely
+Tags used in deployment:
+ - skaffold-example -> aliwatters/skaffold-example:v1.18.0-2-gf0bfcccce@sha256:a8defaa979650baea27a437318a3c4cd51c44397d6e2c1910e17d81d0cde43ac
+Starting deploy...
+ - pod/getting-started created
+Waiting for deployments to stabilize...
+Deployments stabilized in 23.793238ms
+Press Ctrl+C to exit
+Watching for changes...
+[getting-started] Hello world!
+[getting-started] Hello world!
+[getting-started] Hello world!
+# ^C
+Cleaning up...
+ - pod "getting-started" deleted
+```
+
+Now to try in my k8s project!
+
+... well that didn't work :/
+
+```
+$ skaffold dev --default-repo=aliwatters
+WARN[0000] The semantics of sync has changed, the folder structure is no longer flattened but preserved (see https://skaffold.dev/docs/how-tos/filesync/). The likely impacted patterns in your skaffold yaml are: [**/*.css **/*.html **/*.js]
+Listing files to watch...
+ - aliwatters/dkc-multi-client
+Generating tags...
+ - aliwatters/dkc-multi-client -> aliwatters/dkc-multi-client:1dc48c4
+Checking cache...
+ - aliwatters/dkc-multi-client: Found Locally
+Tags used in deployment:
+ - aliwatters/dkc-multi-client -> aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694
+Starting deploy...
+ - deployment.apps/client-deployment created
+Waiting for deployments to stabilize...
+ - deployment/client-deployment: creating container client
+    - pod/client-deployment-8c8b897f4-fclsj: creating container client
+    - pod/client-deployment-8c8b897f4-s5wn8: creating container client
+    - pod/client-deployment-8c8b897f4-ds9zj: container client is waiting to start: aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+ - deployment/client-deployment failed. Error: creating container client.
+Cleaning up...
+ - deployment.apps "client-deployment" deleted
+exiting dev mode because first deploy failed: 1/1 deployment(s) failed
+```
+
+So many things that it could be here; my version of skaffold is much newer than that in the course, so the yaml could be out of date.
+
+Running with `debug`.
+
+```
+$ skaffold dev --default-repo=aliwatters --verbosity='debug'
+# ...
+
+DEBU[0003] Running command: [kubectl --context microk8s rollout status deployment client-deployment --namespace default --watch=false]
+DEBU[0004] Command output: [Waiting for deployment "client-deployment" rollout to finish: 0 of 3 updated replicas are available...
+]
+DEBU[0004] Pod "client-deployment-f94c595c9-jvlmk" scheduled: checking container statuses
+DEBU[0004] Pod "client-deployment-f94c595c9-vmh2x" scheduled: checking container statuses
+DEBU[0004] Pod "client-deployment-f94c595c9-64kbm" scheduled: checking container statuses
+ - deployment/client-deployment: creating container client
+    - pod/client-deployment-f94c595c9-jvlmk: creating container client
+    - pod/client-deployment-f94c595c9-vmh2x: creating container client
+    - pod/client-deployment-f94c595c9-64kbm: container client is waiting to start: aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+ - deployment/client-deployment failed. Error: creating container client.
+
+# cleanup
+```
+
+So that's where to debug next.
