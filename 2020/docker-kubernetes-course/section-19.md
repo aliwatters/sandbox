@@ -63,7 +63,7 @@ skaffold version
 
 Moving on with the course :)
 
-And immediatly blocked with another error.
+And immediately blocked with another error.
 
 Created a github issue: https://github.com/GoogleContainerTools/skaffold/issues/5283 and a stackoverflow: https://stackoverflow.com/questions/65855359/skaffold-and-microk8s-getting-started-x509-certificate-signed-by-unknown
 
@@ -290,6 +290,8 @@ ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl logs pod/client-deplo
 Error from server (BadRequest): container "client" in pod "client-deployment-66b8c8b585-zdbnk" is waiting to start: image can't be pulled
 ```
 
+**1/24**
+
 Now I start to suspect my `--default-repo=aliwatters` is not quite right. Does this need to be a fully qualified host?
 
 ```
@@ -381,4 +383,39 @@ Watching for changes...
 
 Works as expected! -- gah grief -- user error. But why? -- this I'm not going to debug further, but something to consider if I hit when using other container registries -- sidequest after the course will be to deploy _everything_ to Digital Ocean infrastructure; https://www.digitalocean.com/products/container-registry/
 
-**Aside**: https://kubernetes.slack.com/join/signup#/ -- I'd love an invite there, can't signup with my gmail, I'll my work team if anyone has an in.
+**Aside**: https://kubernetes.slack.com/join/signup#/ -- I'd love an invite there, can't signup with my gmail, I'll ask my work team if anyone has an in.
+
+So at this point: `skaffold` is now serving Well, it's not.
+
+I have a cached version from the browser, and from nginx I have the result;
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ curl -k -i https://k8s.course.local/
+HTTP/2 404
+server: nginx/1.19.2
+date: Sun, 24 Jan 2021 15:50:46 GMT
+content-type: text/html
+content-length: 153
+strict-transport-security: max-age=15724800; includeSubDomains
+
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx/1.19.2</center>
+</body>
+</html>
+```
+
+Changes to the files are picked up by skaffold.
+
+```
+ - deployment/client-deployment is ready.
+Deployments stabilized in 2.314 seconds
+Press Ctrl+C to exit
+Watching for changes...
+Syncing 1 files for aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694
+Watching for changes...
+```
+
+Something else to dig in to; troubleshooting, this section is going slowly, but of all the things I had the goal to understand in this course this part is it.
