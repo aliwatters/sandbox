@@ -216,3 +216,169 @@ DEBU[0004] Pod "client-deployment-f94c595c9-64kbm" scheduled: checking container
 ```
 
 So that's where to debug next.
+
+Hunch 1 -- I already have it running from a prior command `kubectl apply -f k8s` probably.
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl get all
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/worker-deployment-7c94ff9b64-t5h7z     1/1     Running   6          12d
+pod/postgres-deployment-5b7fdb4969-kn6pr   1/1     Running   7          12d
+pod/redis-deployment-58c4799ccc-9h5tb      1/1     Running   5          12d
+pod/server-deployment-5567f99966-bbqzv     1/1     Running   7          12d
+pod/server-deployment-5567f99966-xg2c5     1/1     Running   7          12d
+pod/server-deployment-5567f99966-w5ptj     1/1     Running   6          12d
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes                    ClusterIP   10.152.183.1     <none>        443/TCP    13d
+service/client-cluster-ip-service     ClusterIP   10.152.183.163   <none>        3000/TCP   12d
+service/postgres-cluster-ip-service   ClusterIP   10.152.183.164   <none>        5432/TCP   12d
+service/redis-cluster-ip-service      ClusterIP   10.152.183.250   <none>        6379/TCP   12d
+service/server-cluster-ip-service     ClusterIP   10.152.183.165   <none>        5000/TCP   12d
+
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/worker-deployment     1/1     1            1           12d
+deployment.apps/postgres-deployment   1/1     1            1           12d
+deployment.apps/redis-deployment      1/1     1            1           12d
+deployment.apps/server-deployment     3/3     3            3           12d
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/worker-deployment-7c94ff9b64     1         1         1       12d
+replicaset.apps/postgres-deployment-5b7fdb4969   1         1         1       12d
+replicaset.apps/redis-deployment-58c4799ccc      1         1         1       12d
+replicaset.apps/server-deployment-5567f99966     3         3         3       12d
+
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl delete -f k8s/.
+service "client-cluster-ip-service" deleted
+persistentvolumeclaim "database-persistent-volume-claim" deleted
+Warning: networking.k8s.io/v1beta1 Ingress is deprecated in v1.19+, unavailable in v1.22+; use networking.k8s.io/v1 Ingress
+ingress.networking.k8s.io "ingress-service" deleted
+service "postgres-cluster-ip-service" deleted
+deployment.apps "postgres-deployment" deleted
+service "redis-cluster-ip-service" deleted
+deployment.apps "redis-deployment" deleted
+service "server-cluster-ip-service" deleted
+deployment.apps "server-deployment" deleted
+deployment.apps "worker-deployment" deleted
+Error from server (NotFound): error when deleting "k8s/client-deployment.yaml": deployments.apps "client-deployment" not found
+[unable to recognize "k8s/certificate.yaml": no matches for kind "Certificate" in version "cert-manager.io/v1alpha2", unable to recognize "k8s/issuer.yaml": no matches for kind "ClusterIssuer" in version "cert-manager.io/v1alpha2"]
+
+
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl get all
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.152.183.1   <none>        443/TCP   13d
+
+```
+
+So definitely had unneeded things running.
+
+Same error.
+
+Next up; try running commands from within the output.
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl --context microk8s create --dry-run=client -oyaml -f /home/ali/git/dkc-multi-k8s/k8s/client-deployment.yaml | kubectl --context microk8s apply -f -
+deployment.apps/client-deployment created
+```
+
+Basically piping the commands in each step, which I think is what is happening behind the scenes.
+
+Attempted skaffold again, and then looked at logs from kubectl.
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ kubectl logs pod/client-deployment-66b8c8b585-zdbnk
+Error from server (BadRequest): container "client" in pod "client-deployment-66b8c8b585-zdbnk" is waiting to start: image can't be pulled
+```
+
+Now I start to suspect my `--default-repo=aliwatters` is not quite right. Does this need to be a fully qualified host?
+
+```
+    - pod/client-deployment-6cccdfbb7b-dstb7: container client is waiting to start: aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+ - deployment/client-deployment failed. Error: creating container client.
+```
+
+Trying `docker.io/aliwatters`
+
+https://skaffold.dev/docs/environment/image-registries/
+
+```
+DEBU[0002] Pod "client-deployment-5ddb6d4db4-62mr7" scheduled: checking container statuses
+ - deployment/client-deployment: container client is waiting to start: example.com/aliwatters/aliwatters_dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+```
+
+The error above is seen with:
+
+- `example.com/aliwatters`
+- `docker.io/aliwatters`
+- `dockerhub.com/aliwatters`
+- `dockerhub.com`
+- `docker.io`
+
+Specifically
+
+```
+- pod/client-deployment-67886fcd47-nkxfn: container client is waiting to start: docker.io/aliwatters_dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+```
+
+I'd expect it to be `docker.io/aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694` note "**/**" not "**\_**" -- why this. Underscore isn't a valid character in a name so is it just a placeholder?
+
+Also digging in; that tag isn't available. Which makes sense, the tag is a git sha (I think skaffold is generating that) and I've added a yaml file.
+
+```
+$ git rev-parse HEAD
+1dc48c4052aa79e520e5dd457f5deb65a8e9db82
+```
+
+So not this.
+
+Trying something really nasty.
+
+```
+$ SHA=d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 /bin/bash deploy.sh
+Sending build context to Docker daemon  57.34kB
+Step 1/10 : FROM node:alpine as builder
+ ---> d4edda39fb81
+# ...
+
+```
+
+Manually building the image with the tag specified in the `skaffold` error and pushing to docker.io. Yuck. Well let's see...
+
+```
+https://hub.docker.com/layers/aliwatters/dkc-multi-client/d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694/images/sha256-fe178d01696740108d0ec47c2c0082289086d3442471b628d729bdc3cb068d50?context=repo
+```
+
+Now the tag exists.
+
+```
+DEBU[0005] Pod "client-deployment-84bdcdf9cd-pbhbk" scheduled: checking container statuses
+ - deployment/client-deployment: container client is waiting to start: docker.io/aliwatters_dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+    - pod/client-deployment-84bdcdf9cd-pbhbk: container client is waiting to start: docker.io/aliwatters_dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694 can't be pulled
+```
+
+Same error.
+
+Ugh. I found the problem -- my default repo is already docker.io or hub or whatever. So the command;
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ skaffold dev
+Listing files to watch...
+ - aliwatters/dkc-multi-client
+Generating tags...
+ - aliwatters/dkc-multi-client -> aliwatters/dkc-multi-client:1dc48c4
+Checking cache...
+ - aliwatters/dkc-multi-client: Found Locally
+Tags used in deployment:
+ - aliwatters/dkc-multi-client -> aliwatters/dkc-multi-client:d7a991d86f537e4fe387ff2af82d4dec4b36e4cb2a6064069e7f71fea246f694
+Starting deploy...
+ - deployment.apps/client-deployment created
+Waiting for deployments to stabilize...
+ - deployment/client-deployment is ready.
+Deployments stabilized in 2.314 seconds
+Press Ctrl+C to exit
+Watching for changes...
+```
+
+Works as expected! -- gah grief -- user error. But why? -- this I'm not going to debug further, but something to consider if I hit when using other container registries -- sidequest after the course will be to deploy _everything_ to Digital Ocean infrastructure; https://www.digitalocean.com/products/container-registry/
+
+**Aside**: https://kubernetes.slack.com/join/signup#/ -- I'd love an invite there, can't signup with my gmail, I'll my work team if anyone has an in.
