@@ -504,3 +504,67 @@ ok -- trying `dump`.
 Ended up getting blocked in many ways, so posted here in the snapcraft forum; https://forum.snapcraft.io/t/questions-from-creating-snap-devmode-for-skaffold-but-some-general-ones-included/22322
 
 Where I had to break the links because of dumb new user limitations. A frustrating experience so far; I think I'll send an email to the ubuntu podcast -- ready for season 14.
+
+**1/25**
+
+A few days later, I'm running low on disk, with a 256gb msata2 this is common. So where was it all used?
+
+```
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ sudo du -sh /var/snap/*
+16K	/var/snap/code
+16K	/var/snap/core
+16K	/var/snap/core18
+16K	/var/snap/gnome-3-28-1804
+16K	/var/snap/gnome-3-34-1804
+16K	/var/snap/gnome-system-monitor
+16K	/var/snap/gtk-common-themes
+16K	/var/snap/insomnia-designer
+12K	/var/snap/kompose
+12K	/var/snap/kubectl
+6.2G	/var/snap/microk8s
+30G	/var/snap/multipass # <-- THIS 30gb!
+16K	/var/snap/node
+12K	/var/snap/snapcraft
+928K	/var/snap/snap-store
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ sudo snap remove multipass --purge
+multipass removed
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ du -sh /var/snap/*
+16K	/var/snap/code
+16K	/var/snap/core
+16K	/var/snap/core18
+16K	/var/snap/gnome-3-28-1804
+16K	/var/snap/gnome-3-34-1804
+16K	/var/snap/gnome-system-monitor
+16K	/var/snap/gtk-common-themes
+16K	/var/snap/insomnia-designer
+12K	/var/snap/kompose
+12K	/var/snap/kubectl
+669M	/var/snap/microk8s
+16K	/var/snap/node
+12K	/var/snap/snapcraft
+928K	/var/snap/snap-store
+
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ sudo snap install multipass --beta --classic
+Warning: flag --classic ignored for strictly confined snap multipass
+
+multipass (candidate) 1.6.0-rc.265+g9d962ccd from Canonical✓ installed
+Channel latest/beta for multipass is closed; temporarily forwarding to candidate.
+
+$ du -sh /var/snap/*
+# ...
+6.9M	/var/snap/multipass
+```
+
+So note! -- multipass is a VM system for ubuntu, and these images take up space! Rapidly! Snaps when they build are in VMs of the different bases, eg. `core18` etc
+
+Alternatively -- the VM's can be removed via multipass, `multipass purge` or `multipass delete <name>`
+
+Useful `multipass` commands
+
+`$ multipass list` -- lists out the machines and states
+`$ multipass info <name>` -- shows status of a VM
+`$ multipass stop <name>` -- stops a VM
+
+More info at: https://ubuntu.com/server/docs/virtualization-multipass

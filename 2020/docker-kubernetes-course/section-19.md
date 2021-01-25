@@ -419,3 +419,319 @@ Watching for changes...
 ```
 
 Something else to dig in to; troubleshooting, this section is going slowly, but of all the things I had the goal to understand in this course this part is it.
+
+Relevant posts;
+https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/learn/lecture/15271348#questions/8903404
+https://github.com/StephenGrider/DockerCasts/blob/master/complex/skaffold.yaml
+https://skaffold.dev/docs/pipeline-stages/port-forwarding/
+
+**1/25**
+
+Digging in some more and issues relating to pulling and pushing images are many;
+
+Back to the examples from skaffold:
+
+1. setup microk8s local registry
+
+- `microk8s enable registry:size=20Gi` -- annoyingly 20Gi is minimum
+
+2. `skaffold dev --default-repo=localhost:32000` -- inside examples folder `examples/getting-started`
+
+```
+$ skaffold dev --default-repo=localhost:32000
+Listing files to watch...
+ - skaffold-example
+Generating tags...
+ - skaffold-example -> localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce
+Checking cache...
+ - skaffold-example: Found Remotely
+Tags used in deployment:
+ - skaffold-example -> localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce@sha256:98741deac3e4370fc070835c30a55d5ce9dfd5f97966907c0be3c2bb0b720c6b
+Starting deploy...
+ - pod/getting-started created
+Waiting for deployments to stabilize...
+Deployments stabilized in 9.68776ms
+Press Ctrl+C to exit
+Watching for changes...
+[getting-started] Hello world!
+```
+
+Now into the `examples/microservices` project
+
+```
+$ skaffold dev --default-repo=localhost:32000
+# ...
+Starting deploy...
+ - deployment.apps/leeroy-web created
+ - service/leeroy-app created
+ - deployment.apps/leeroy-app created
+Waiting for deployments to stabilize...
+ - deployment/leeroy-web is ready. [1/2 deployment(s) still pending]
+ - deployment/leeroy-app is ready.
+Deployments stabilized in 2.359 seconds
+Press Ctrl+C to exit
+Watching for changes...
+[leeroy-web] 2021/01/25 15:20:21 leeroy web server ready
+[leeroy-app] 2021/01/25 15:20:21 leeroy app server ready
+```
+
+So working there too, now over to my project; `~/git/dkc-multi-k8s`
+
+```
+$ skaffold dev --default-repo=localhost:32000
+Listing files to watch...
+ - aliwatters/dkc-multi-client
+Generating tags...
+ - aliwatters/dkc-multi-client -> localhost:32000/aliwatters_dkc-multi-client:1dc48c4-dirty
+Checking cache...
+ - aliwatters/dkc-multi-client: Not found. Building
+Building [aliwatters/dkc-multi-client]...
+Sending build context to Docker daemon   55.3kB
+Step 1/6 : FROM node:alpine
+alpine: Pulling from library/node
+0a6724ff3fcd: Pulling fs layer
+42841052445f: Pulling fs layer
+0ca42998fbf4: Pulling fs layer
+ab7c5f8ccb9b: Pulling fs layer
+ab7c5f8ccb9b: Waiting
+0ca42998fbf4: Verifying Checksum
+0ca42998fbf4: Download complete
+0a6724ff3fcd: Verifying Checksum
+0a6724ff3fcd: Download complete
+0a6724ff3fcd: Pull complete
+ab7c5f8ccb9b: Verifying Checksum
+ab7c5f8ccb9b: Download complete
+42841052445f: Verifying Checksum
+42841052445f: Download complete
+42841052445f: Pull complete
+0ca42998fbf4: Pull complete
+ab7c5f8ccb9b: Pull complete
+Digest: sha256:9b731474409d0eb68a888963590d68385d3fcfe652042b5da2a71e0d64109172
+Status: Downloaded newer image for node:alpine
+ ---> 179fbd4d8e5c
+Step 2/6 : WORKDIR "/app"
+ ---> Running in 81c10900e332
+ ---> 3367527b156a
+Step 3/6 : COPY ./package.json ./
+ ---> 469cb054a718
+Step 4/6 : RUN npm install
+ ---> Running in 69bf08a907dd
+npm WARN deprecated @hapi/topo@3.1.6: This version has been deprecated and is no longer supported or maintained
+npm WARN deprecated @hapi/bourne@1.3.2: This version has been deprecated and is no longer supported or maintained
+npm WARN deprecated @hapi/hoek@8.5.1: This version has been deprecated and is no longer supported or maintained
+npm WARN deprecated @hapi/address@2.1.4: Moved to 'npm install @sideway/address'
+npm WARN deprecated fsevents@1.2.13: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents 2.
+npm WARN deprecated chokidar@2.1.8: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
+npm WARN deprecated @hapi/joi@15.1.1: Switch to 'npm install joi'
+npm WARN deprecated resolve-url@0.2.1: https://github.com/lydell/resolve-url#deprecated
+npm WARN deprecated har-validator@5.1.5: this library is no longer supported
+npm WARN deprecated request-promise-native@1.0.9: request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142
+npm WARN deprecated left-pad@1.3.0: use String.prototype.padStart()
+npm WARN deprecated request@2.88.2: request has been deprecated, see https://github.com/request/request/issues/3142
+npm WARN deprecated fsevents@1.2.13: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents 2.
+npm WARN deprecated core-js@2.6.12: core-js@<3 is no longer maintained and not recommended for usage due to the number of issues. Please, upgrade your dependencies to the actual version of core-js@3.
+npm WARN deprecated fsevents@1.2.13: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents 2.
+npm WARN deprecated chokidar@2.1.8: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
+npm WARN deprecated fsevents@2.1.2: "Please update to latest v2.3 or v2.2"
+npm WARN deprecated eslint-loader@3.0.3: This loader has been deprecated. Please use eslint-webpack-plugin
+npm WARN deprecated urix@0.1.0: Please see https://github.com/lydell/urix#deprecated
+npm WARN deprecated @types/testing-library__dom@7.5.0: This is a stub types definition. testing-library__dom provides its own type definitions, so you do not need this installed.
+npm WARN deprecated axios@0.18.0: Critical security vulnerability fixed in v0.21.1. For more information, see https://github.com/axios/axios/pull/3410
+
+added 1960 packages, and audited 1961 packages in 1m
+
+79 packages are looking for funding
+  run `npm fund` for details
+
+5 high severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm notice
+npm notice New patch version of npm available! 7.4.0 -> 7.4.3
+npm notice Changelog: <https://github.com/npm/cli/releases/tag/v7.4.3>
+npm notice Run `npm install -g npm@7.4.3` to update!
+npm notice
+ ---> 723757e2b396
+Step 5/6 : COPY . .
+ ---> d578bd92d0b2
+Step 6/6 : CMD ["npm", "run", "start"]
+ ---> Running in 681ff4bac913
+ ---> b8b87735cb59
+Successfully built b8b87735cb59
+Successfully tagged localhost:32000/aliwatters_dkc-multi-client:1dc48c4-dirty
+Tags used in deployment:
+ - aliwatters/dkc-multi-client -> localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51
+Starting deploy...
+ - deployment.apps/client-deployment created
+Waiting for deployments to stabilize...
+ - deployment/client-deployment: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled
+    - pod/client-deployment-74cffbf4c7-th85s: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled
+    - pod/client-deployment-74cffbf4c7-n65tl: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled
+    - pod/client-deployment-74cffbf4c7-xl8h6: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled
+ - deployment/client-deployment failed. Error: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled.
+Cleaning up...
+ - deployment.apps "client-deployment" deleted
+exiting dev mode because first deploy failed: 1/1 deployment(s) failed
+```
+
+Same situation; this is the error;
+
+```
+    - pod/client-deployment-74cffbf4c7-xl8h6: container client is waiting to start: localhost:32000/aliwatters_dkc-multi-client:b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51 can't be pulled
+```
+
+This looks like it works;
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold)$ more skaffold.yaml
+apiVersion: skaffold/v2beta11
+kind: Config
+build:
+  artifacts:
+  - image: dkc-multi-client
+    context: client
+    sync:
+      manual:
+      - src: '**/*.css'
+        dest: .
+      - src: '**/*.html'
+        dest: .
+      - src: '**/*.js'
+        dest: .
+    docker:
+      dockerfile: Dockerfile.dev
+  local:
+    push: false
+deploy:
+  kubectl:
+    manifests:
+    - k8s/client-deployment.yaml
+```
+
+Note: the change is that I've removed `aliwatters` from the image name.
+
+So at this point; the `skaffold dev --default-repo=localhost:32000` command works -- but on loading the page, it's a 404 error.
+
+```
+$ docker images
+REPOSITORY                                    TAG                                                                IMAGE ID            CREATED             SIZE
+localhost:32000/dkc-multi-client              1dc48c4-dirty                                                      b8b87735cb59        9 minutes ago       425MB
+localhost:32000/dkc-multi-client              b8b87735cb591a0ca3041ab9c347d2000a56c33dd26953d87ef5158634562a51   b8b87735cb59        9 minutes ago       425MB
+```
+
+Which at least shows the build is working and interfacing with docker.
+
+The change detection in `skaffold` is working;
+
+```
+Watching for changes...
+Generating tags...
+ - dkc-multi-client -> localhost:32000/dkc-multi-client:1dc48c4-dirty
+Checking cache...
+ - dkc-multi-client: Not found. Building
+Building [dkc-multi-client]...
+Sending build context to Docker daemon   68.1kB
+Step 1/6 : FROM node:alpine
+ ---> 179fbd4d8e5c
+Step 2/6 : WORKDIR "/app"
+ ---> Using cache
+ ---> 3367527b156a
+Step 3/6 : COPY ./package.json ./
+ ---> Using cache
+ ---> 469cb054a718
+Step 4/6 : RUN npm install
+ ---> Using cache
+ ---> 723757e2b396
+Step 5/6 : COPY . .
+ ---> adf93954db53
+Step 6/6 : CMD ["npm", "run", "start"]
+ ---> Running in f8b3e6a6446d
+ ---> 9c0c9fbe6c7e
+Successfully built 9c0c9fbe6c7e
+Successfully tagged localhost:32000/dkc-multi-client:1dc48c4-dirty
+Tags used in deployment:
+ - dkc-multi-client -> localhost:32000/dkc-multi-client:9c0c9fbe6c7ec47678e0b602bd97231c21cc1508495c3b1f8d38fb937059b6b3
+Starting deploy...
+Waiting for deployments to stabilize...
+ - deployment/client-deployment is ready.
+Deployments stabilized in 1.216 second
+Watching for changes...
+```
+
+So if only I can get everything connected up -- this should all work!
+
+Note: this all works so nicely with `getting-started` app in go.
+
+```
+Successfully tagged localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce-dirty
+The push refers to repository [localhost:32000/skaffold-example]
+f314433c506e: Preparing
+1b3ee35aacca: Preparing
+1b3ee35aacca: Layer already exists
+f314433c506e: Pushed
+v1.18.0-2-gf0bfcccce-dirty: digest: sha256:df894399994be7e3532d06b94ee0ea53399b3499e570ceb7a2395d9831b8b014 size: 739
+Tags used in deployment:
+ - skaffold-example -> localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce-dirty@sha256:df894399994be7e3532d06b94ee0ea53399b3499e570ceb7a2395d9831b8b014
+Starting deploy...
+ - pod/getting-started configured
+Waiting for deployments to stabilize...
+Deployments stabilized in 5.399407ms
+Watching for changes...
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+[getting-started] Hello Skaffold!
+Generating tags...
+ - skaffold-example -> localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce
+Checking cache...
+ - skaffold-example: Found Remotely
+Tags used in deployment:
+ - skaffold-example -> localhost:32000/skaffold-example:v1.18.0-2-gf0bfcccce@sha256:98741deac3e4370fc070835c30a55d5ce9dfd5f97966907c0be3c2bb0b720c6b
+Starting deploy...
+ - pod/getting-started configured
+Waiting for deployments to stabilize...
+Deployments stabilized in 7.214464ms
+Watching for changes...
+[getting-started] Hello world!
+[getting-started] Hello world!
+[getting-started] Hello world!
+# ^C
+Cleaning up...
+ - pod "getting-started" deleted
+```
+
+From just alternating the `main.go` code;
+
+```
+ali@stinky:~/git/skaffold/examples/getting-started (master)$ cat main.go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	for {
+		fmt.Println("Hello world!")
+
+		time.Sleep(time.Second * 1)
+	}
+}
+```
+
+There is a good chance here that the course at this point hasn't set up the `ingress` service, no load-balancing etc -- so my plan now is to add all the other config for the rest of the components and see what happens.
