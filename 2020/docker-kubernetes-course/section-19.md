@@ -735,3 +735,38 @@ func main() {
 ```
 
 There is a good chance here that the course at this point hasn't set up the `ingress` service, no load-balancing etc -- so my plan now is to add all the other config for the rest of the components and see what happens.
+
+**1/26**
+
+Chugging along. So, I've added in config for the server, and worker. And a number of familiar errors show;
+
+```
+# ...
+    - pod/server-deployment-7887d96897-qvrtw: container server is waiting to start: aliwatters/dkc-multi-server can't be pulled
+ - deployment/server-deployment failed. Error: creating container server.
+Cleaning up...
+```
+
+It builds and finds the images locally, but fails to start up, because it can't pull.
+
+This is with or without the `--default-repo` set.
+
+```
+$ skaffold dev --default-repo=localhost:32000
+
+# or
+
+$ skaffold dev
+```
+
+`-v=debug` doesn't yield any additional clues.
+
+So, I'll continue with the course and post in a skaffold support forum somewhere.
+
+**Lesson 324:**
+
+Recommended that "data" infrastructure not be added to skaffold, because it will be torn down every time the development is stopped.
+
+I think that could be mitigated with a persistant storage claim. But seems reasonable to also have a `dependencies.yaml` maintained that can be run alongside skaffold. That file would in this case contain the redis and postgres services.
+
+After watching all videos, reading all the related questions/answers, still no luck getting skaffold to work with this setup.
