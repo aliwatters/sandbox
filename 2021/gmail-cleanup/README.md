@@ -36,3 +36,35 @@ I never wrote back, sorry Tom.
 After about 30mins, or longer :( -- down to 1,500 unread emails.
 
 `older_than:10y is:unread ` -- next step.
+
+**1/27**
+
+`from: store-news@amazon.com ` -- marketing from amazon (also unsubbed)
+
+`from: @amazon.com -from: aws-receivables-support@email.amazon.com ` -- all order updates but not aws invoices
+
+`from: audible.com | from: audible.co.uk ` -- nothing useful here long term -- delete
+
+`from: airasia.com -"booking no:" ` -- all marketing stuff from air asia, but not my actual flights (cause it's nice to see where I went when)
+
+`from: nominet.org.uk ` -- nothing since 2010
+
+`from: skype.com ` -- nothing useful here, just missed stuff I saw later
+
+`from: insideapple.apple.com ` -- so much, unsubbed and deleted
+
+`from: no_reply@email.apple.com from: noreply@email.apple.com ` -- test flight and receipts - deleted
+
+`from: email.apple.com ` -- should be safe, had a notification of support response
+
+`from: apple.com -"order" -"receipt" -from: devbugs@apple.com ` filtered out everything, except orders, and updates on bugs I've filed.
+
+`from: equitymaster.com ` -- how did I miss this one!
+
+`from: no-reply-aws@amazon.com ` -- aws newsletters and updates
+
+`from: twitter.com` -- nothing needed here
+
+`from: <trading-website>.com -"trade confirmation" -"tax year 2020" ` -- none needed, but I do want notification of tax forms
+
+`from: <important-person>@gmail.com | from: <other-important-person>@gmail.com ` -- mark as read
