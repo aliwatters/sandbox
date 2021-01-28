@@ -68,3 +68,15 @@ After about 30mins, or longer :( -- down to 1,500 unread emails.
 `from: <trading-website>.com -"trade confirmation" -"tax year 2020" ` -- none needed, but I do want notification of tax forms
 
 `from: <important-person>@gmail.com | from: <other-important-person>@gmail.com ` -- mark as read
+
+**1/28**
+
+Done -- inbox zero!
+
+How to keep it there;
+
+1. make filters
+2. unsubscribe
+3. use `is:unread older_than:1w` regularly
+
+Was on 30,000+ about a year ago, 3,000+ last week. Won't get there again.
