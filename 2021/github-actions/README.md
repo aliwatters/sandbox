@@ -141,3 +141,131 @@ on:
     branches:
       - main
 ```
+
+## Setting up a snapcraft build and push in Github Actions
+
+https://github.com/abskmj/notes/blob/master/content/posts/github/actions/setup-snapcraft.md
+
+1. Create and add a `SNAPCRAFT_TOKEN` as a varialbe in github (probably repo level)
+
+2. Add a workflow file similar to this
+
+```
+name: Build
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+        cd ..
+    - name: Setup Snapcraft
+      run: |
+        sudo snap install snapcraft --classic
+        echo "$SNAP_TOKEN" | snapcraft login --with -
+        snapcraft
+        snapcraft upload --release=stable *.snap
+      env:
+        SNAP_TOKEN: ${{secrets.SNAP_TOKEN}}
+        SNAPCRAFT_BUILD_ENVIRONMENT: host
+```
+
+Ok... that looks easy -- lets try a hello-world.
+
+```
+ali@stinky:~/git$ ls ~/mysnaps/hello/
+aliwatters-hello_2.10_amd64.snap  snap
+
+ali@stinky:~/git$ more ~/mysnaps/hello/snap/snapcraft.yaml
+name: aliwatters-hello
+base: core18
+version: '2.10'
+summary: GNU Hello, the "hello world" snap
+description: |
+  GNU hello prints a friendly greeting.
+
+grade: stable
+confinement: strict
+
+apps:
+  hello:
+    command: bin/hello
+  bash:
+    command: bash
+
+parts:
+  gnu-hello:
+    source: http://ftp.gnu.org/gnu/hello/hello-2.10.tar.gz
+    plugin: autotools
+  gnu-bash:
+    source: http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+    plugin: autotools
+```
+
+![Github Actions Run](./img/github-action-run.png)
+
+![Github Actions](./img/github-actions.png)
+
+### 1. Make a git repo for these files...
+
+might make sense to symlink from/to `~/git/mysnaps` -- and git ignore the binaries.
+
+Ok -- each snap would need to be a separate reop. Maybe prefix the repo with `snapcraft-<name>`
+
+Trying this.
+
+![Github Repo Secrets](./img/github-secret.png)
+
+Secret was created with:
+
+```
+$ snapcraft export-login --snaps=aliwatters-hello    --acls package_access,package_push,package_update,package_release       exported.txt
+Enter your Ubuntu One e-mail address and password.
+If you do not have an Ubuntu One account, you can create one at https://snapcraft.io/account
+Email: ali.watters@example.com
+Password:
+
+We strongly recommend enabling multi-factor authentication: https://help.ubuntu.com/community/SSO/FAQs/2FA
+
+Login successfully exported to 'exported.txt'. This can now be used with
+
+    snapcraft login --with exported.txt
+
+to log in to this account with no password and have these
+capabilities:
+
+snaps:       ['aliwatters-hello']
+channels:    No restriction
+permissions: ['package_access', 'package_push', 'package_update', 'package_release']
+expires:     2022-01-31T16:07:15.586639
+
+This exported login is not encrypted. Do not commit it to version control!
+```
+
+Added:
+
+```
+$ cat .github/workflows/publish.yml
+name: "build-publish"
+on: # rebuild any PRs and main branch changes
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: snapcore/action-build@v1
+      id: build
+    - uses: snapcore/action-publish@v1
+      with:
+        store_login: ${{ secrets.STORE_LOGIN }}
+        snap: ${{ steps.build.outputs.snap }}
+        release: edge
+```
