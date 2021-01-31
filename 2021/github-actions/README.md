@@ -269,3 +269,16 @@ jobs:
         snap: ${{ steps.build.outputs.snap }}
         release: edge
 ```
+
+## Result
+
+In the build steps, https://github.com/aliwatters/snapcraft-hello/runs/1801698139?check_suite_focus=true
+
+```
+Run snapcore/action-publish@v1
+Publishing snap "aliwatters-hello_2.10_amd64.snap"...
+/snap/bin/snapcraft login --with /tmp/login-data-73ZbEk/login.txt
+Invalid login config: Source contains parsing errors: '<string>'
+```
+
+Enough for now ... next step -- maybe an issue on https://github.com/snapcore/action-publish/issues -- asking for help, but not very active, worth a try though.
