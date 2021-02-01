@@ -770,3 +770,61 @@ Recommended that "data" infrastructure not be added to skaffold, because it will
 I think that could be mitigated with a persistant storage claim. But seems reasonable to also have a `dependencies.yaml` maintained that can be run alongside skaffold. That file would in this case contain the redis and postgres services.
 
 After watching all videos, reading all the related questions/answers, still no luck getting skaffold to work with this setup.
+
+**1/2**
+
+Trying suggestions from this post: https://stackoverflow.com/questions/65964535/skaffold-and-microk8s-container-server-is-waiting-to-start-image-cant-be?noredirect=1#comment116673535_65964535 (one I made on stackoverflow)
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold-minimal)$ cat ~/.docker/config.json
+{
+	"auths": {
+		"https://index.docker.io/v1/": {}
+	},
+	"HttpHeaders": {
+		"User-Agent": "Docker-Client/19.03.4-rc1 (linux)"
+	},
+	"credsStore": "secretservice"
+}ali@stinky:~/git/dkc-multi-k8s (feature-skaffold-minimal)$ kubectl create secret generic regcred --from-file=.dockerconfigjson=~/.docker/config.json --type=kubernetes.io/dockerconfigjson
+error: error reading ~/.docker/config.json: no such file or directory
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold-minimal)$ kubectl create secret generic regcred --from-file=.dockerconfigjson=/home/ali/.docker/config.json --type=kubernetes.io/dockerconfigjson
+secret/regcred created
+```
+
+```
+$ kubectl get secret regcred --output=yaml
+apiVersion: v1
+data:
+  .dockerconfigjson: ewoJ<snip>KfQ==
+kind: Secret
+metadata:
+  creationTimestamp: "2021-02-01T15:36:02Z"
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        .: {}
+        f:.dockerconfigjson: {}
+      f:type: {}
+    manager: kubectl-create
+    operation: Update
+    time: "2021-02-01T15:36:02Z"
+  name: regcred
+  namespace: default
+  resourceVersion: "2368742"
+  selfLink: /api/v1/namespaces/default/secrets/regcred
+  uid: 7f292deb-6d6a-4ea8-97c4-b3c2966d7abc
+type: kubernetes.io/dockerconfigjson
+```
+
+I've added
+
+```
+      imagePullSecrets:
+        - name: regcred
+```
+
+To the end of `k8s/server-deployment.yaml` -- seems to be a red herring.
+
+Posted in the skaffold issues; :fingers-crossed: -- https://github.com/GoogleContainerTools/skaffold/issues/5327
