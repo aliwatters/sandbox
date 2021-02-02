@@ -1302,3 +1302,12 @@ Fixing that last issue and it worked.
 ## Section 18 -- HTTPS in K8S
 
 [Section 18 Continued HERE](section-18.md)
+
+### Completed course on 2/2/21
+
+Caveat: image pull error in skaffold 1.17 -- will continue trouble shooting.
+
+https://github.com/GoogleContainerTools/skaffold/issues/5327
+
+Also I'm trying to automate the snapcraft for skaffold
+https://github.com/GoogleContainerTools/skaffold/issues/5284

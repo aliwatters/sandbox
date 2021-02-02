@@ -287,7 +287,7 @@ Enough for now ... next step -- maybe an issue on https://github.com/snapcore/ac
 
 Made it work! -- unblocked!
 
-Note: the broken actions were due to `\n` in the copy and paste of the `exported.txt` values.
+Note: the broken actions were due to `\n` in the copy and paste of the `exported.txt` values in the secret -- avoid that and all works!
 
 ```
 [login.ubuntu.com]
