@@ -282,3 +282,17 @@ Invalid login config: Source contains parsing errors: '<string>'
 ```
 
 Enough for now ... next step -- maybe an issue on https://github.com/snapcore/action-publish/issues -- asking for help, but not very active, worth a try though.
+
+**1/2**
+
+Made it work! -- unblocked!
+
+Note: the broken actions were due to `\n` in the copy and paste of the `exported.txt` values.
+
+```
+[login.ubuntu.com]
+macaroon = MDAyOWxvY2F0aW9..<long snip>..fXbRYgo
+unbound_discharge = MDAxZWxv..<long snip>..Y2DcHJOOEs email = ali.watters@gmail.com
+```
+
+https://github.com/aliwatters/snapcraft-hello/actions/runs/525577853
