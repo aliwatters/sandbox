@@ -108,3 +108,25 @@ RUN hack/golangci-lint.sh
 PASSED hack/golangci-lint.sh in 2s
 
 ```
+
+**2/6/2021**
+
+Running through the commands suggested by Marlon on
+
+```
+$ multipass launch --name microk8s-vm
+
+$ multipass list
+Name                    State             IPv4             Image
+microk8s-vm             Running           10.117.155.213   Ubuntu 20.04 LTS
+```
+
+Now I have a multipass vm.
+
+```
+ali@stinky:~/git/dkc-multi-k8s (feature-skaffold-minimal)$ docker save aliwatters/dkc-multi-server | multipass transfer - microk8s-vm:aliwatters_dkc-multi-server.tar
+```
+
+Now works as expected.
+
+Testing -- `make quicktest` -- runs only the changed files.
