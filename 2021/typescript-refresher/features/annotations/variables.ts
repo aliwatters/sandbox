@@ -1,5 +1,5 @@
 let apples: number = 5;
-let speed: string = "fast";
+let speed: string = 'fast';
 let hasName: boolean = true;
 
 let nothingMuch: null = null;
@@ -9,7 +9,7 @@ let nothing: undefined = undefined;
 let now: Date = new Date();
 
 // Array
-let colors: string[] = ["red", "green", "blue"];
+let colors: string[] = ['red', 'green', 'blue'];
 let myNumbers: number[] = [1, 2, 3];
 let truths: boolean[] = [true, true, false];
 
@@ -44,11 +44,11 @@ console.log(coordinates);
 // 2) when we declare variable on one line
 // and initialize it later
 
-let words = ["red", "green", "blue"];
+let words = ['red', 'green', 'blue'];
 let foundWord: boolean;
 
 for (let i = 0; i < words.length; i++) {
-  if (words[i] === "green") {
+  if (words[i] === 'green') {
     foundWord = true;
   }
 }
