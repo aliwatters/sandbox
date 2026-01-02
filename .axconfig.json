@@ -1,0 +1,95 @@
+{
+  "repository": {
+    "owner": "aliwatters",
+    "name": "sandbox",
+    "main_branch": "main"
+  },
+  "labels": {
+    "valid": [
+      "bug",
+      "enhancement",
+      "documentation",
+      "priority:critical",
+      "priority:high",
+      "priority:medium",
+      "priority:low",
+      "ready for robots",
+      "ready for humans",
+      "claimed",
+      "batch",
+      "blocked",
+      "needs-attention",
+      "automation",
+      "tooling",
+      "minion-task",
+      "claude-web-task",
+      "EPIC",
+      "needs-retry",
+      "verified",
+      "duplicate",
+      "invalid",
+      "wontfix"
+    ],
+    "mappings": {
+      "code-quality": "enhancement,tooling",
+      "feature": "enhancement"
+    },
+    "translations": null
+  },
+  "workflows": {
+    "phases": [
+      "setup",
+      "discovery",
+      "implementation",
+      "refinement",
+      "retrospective",
+      "verify"
+    ],
+    "default_workflow": "dev-cycle"
+  },
+  "quality_gates": {
+    "lint": "ruff check .",
+    "test": "pytest",
+    "format": "ruff format .",
+    "build": ""
+  },
+  "prompts": {
+    "directory": "./prompts",
+    "workflows_directory": "./workflows"
+  },
+  "state": {
+    "directory": ".",
+    "file_prefix": ".workflow-state"
+  },
+  "branches": {
+    "prefixes": [
+      "fix",
+      "feature",
+      "docs",
+      "refactor",
+      "test"
+    ],
+    "separator": "/"
+  },
+  "workspace": {
+    "clean_excludes": [
+      ".env",
+      ".env.*",
+      "node_modules/",
+      ".idea/",
+      ".vscode/"
+    ]
+  },
+  "pr_bundling": {
+    "enabled": true,
+    "target_hours": {
+      "min": 6,
+      "max": 10
+    },
+    "bundle_trigger_hours": 4,
+    "max_issues_per_pr": 5,
+    "repos": [
+      "*"
+    ]
+  }
+}
